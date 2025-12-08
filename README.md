@@ -28,11 +28,11 @@ Frontend Repo: Coming soon (NExtJs + Tailwind)
 | Backend          | Node.js, Express               |
 | Database         | MongoDB (Mongoose)             |
 | Auth             | JWT + bcrypt                   |
-| Payments         | Stripe (test & live)           |
+| Payments         | Simulation                     |
 | PDF Generation   | Puppeteer                      |
 | Email            | Nodemailer                     |
 | Error Handling   | Global handler + catchAsync    |
-| Dev Tools        | nodemon, morgan, dotenv        |
+
 
 ## Quick Start (Local)
 ```bash
@@ -55,7 +55,7 @@ Server runs at: http://localhost:5000
 
 ```
 
-# Server
+## Server
 ```bash
 PORT=5000
 NODE_ENV=development
@@ -68,14 +68,14 @@ JWT_SECRET=your_very_long_random_string_here_128_chars_minimum
 
 ```
 
-# Email (Nodemailer) - for sending invoices
+## Email (Nodemailer) - for sending invoices
 ```bash
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=yourcompany@gmail.com
 SMTP_PASS=your_app_password_here
 ```
-# Company Branding (appears on invoices)
+## Company Branding (appears on invoices)
 ```bash
 COMPANY_NAME=Speedy Vehicle Rentals
 COMPANY_ADDRESS=123 Airport Road, New York, NY 10001, USA
@@ -83,16 +83,16 @@ COMPANY_EMAIL=info@speedyrentals.com
 COMPANY_PHONE=+1 (555) 123-4567
 ```
 
-# Frontend URL 
+## Frontend URL 
 ```bash
 FRONTEND_URL=http://localhost:3000
 ```
 
-#API Documentation
+## API Documentation
 ```bash
 Full endpoint list in API_DOCS.md (updated Dec 2025)
 ```
-#Key Endpoints:
+## Key Endpoints:
 
 ```bash
 POST   /api/auth/register
@@ -107,7 +107,7 @@ GET    /api/admin/invoices/:id/pdf
 POST   /api/admin/invoices/:id/email
 ```
 
-#Scripts
+## Scripts
 ```bash
 Bashnpm run dev     # Development with nodemon
 npm start       # Production
