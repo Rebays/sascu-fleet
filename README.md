@@ -56,6 +56,7 @@ Server runs at: http://localhost:5000
 ```
 
 # Server
+```bash
 PORT=5000
 NODE_ENV=development
 
@@ -65,29 +66,35 @@ MONGO_URI=mongodb+srv://<user>:<password>@cluster0.xxxxx.mongodb.net/vehiclebook
 # JWT
 JWT_SECRET=your_very_long_random_string_here_128_chars_minimum
 
-
+```
 
 # Email (Nodemailer) - for sending invoices
+```bash
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=yourcompany@gmail.com
 SMTP_PASS=your_app_password_here
-
+```
 # Company Branding (appears on invoices)
+```bash
 COMPANY_NAME=Speedy Vehicle Rentals
 COMPANY_ADDRESS=123 Airport Road, New York, NY 10001, USA
 COMPANY_EMAIL=info@speedyrentals.com
 COMPANY_PHONE=+1 (555) 123-4567
+```
 
 # Frontend URL 
+```bash
 FRONTEND_URL=http://localhost:3000
-
+```
 
 #API Documentation
+```bash
 Full endpoint list in API_DOCS.md (updated Dec 2025)
-
+```
 #Key Endpoints:
 
+```bash
 POST   /api/auth/register
 POST   /api/auth/login
 GET    /api/vehicles
@@ -98,14 +105,17 @@ Admin:
 GET    /api/reports/dashboard
 GET    /api/admin/invoices/:id/pdf
 POST   /api/admin/invoices/:id/email
+```
 
 #Scripts
+```bash
 Bashnpm run dev     # Development with nodemon
 npm start       # Production
 npm run lint    # ESLint (optional)
-
+```
 
 ## Project Structure
+```bash
 vehicle-booking-api/
 ├── .env                  # Environment variables (never commit real one)
 ├── .env.example          # Template for contributors
@@ -159,7 +169,7 @@ vehicle-booking-api/
 ├── generateInvoicePDF.js # Puppeteer PDF generator
 └── sendInvoiceEmail.js   # Nodemailer helper
 
-
+```
 License
 MIT License – free to use commercially or modify.
 
