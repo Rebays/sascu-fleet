@@ -1,5 +1,3 @@
-//TrZ1uMRWZI3EFw2y
-
 const mongoose = require('mongoose');
 
 const connectDB = async () => {
