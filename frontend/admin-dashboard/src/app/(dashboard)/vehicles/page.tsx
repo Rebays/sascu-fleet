@@ -1,0 +1,358 @@
+'use client';
+import { useState, useRef, useMemo } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Car, Edit, Trash2, Plus, Upload, X, Grid3x3, List, Search } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import useSWR, { mutate } from 'swr';
+import fetcher  from '@/lib/api';
+import toast from 'react-hot-toast';
+import Image from 'next/image';
+
+const UPLOAD_MODE = process.env.NEXT_PUBLIC_UPLOAD_MODE || 'local';
+
+interface Vehicle {
+  _id: string;
+  make: string;
+  model: string;
+  year: number;
+  type: string;
+  licensePlate: string;
+  pricePerHour: number;
+  pricePerDay: number;
+  location: string;
+  isAvailable: boolean;
+  images?: string[];
+}
+
+export default function VehiclesPage() {
+  const { data: response, error, isLoading } = useSWR<any>('/vehicles', fetcher);
+  const vehicles: Vehicle[] = response?.data || [];
+
+  const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
+  const [open, setOpen] = useState(false);
+  const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
+  const [form, setForm] = useState({
+    make: '', model: '', year: '', type: 'car', licensePlate: '',
+    pricePerHour: '', pricePerDay: '', location: ''
+  });
+  const [images, setImages] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [search, setSearch] = useState('');
+
+  //Search functionality
+  const filtered = useMemo(() => {
+    if (!search) return vehicles;
+    const lower = search.toLowerCase();
+    return vehicles.filter((v: any) =>
+      v.make?.toLowerCase().includes(lower) ||
+      v.model?.toLowerCase().includes(lower) ||
+      v.licensePlate?.toLowerCase().includes(lower)
+    );
+  }, [vehicles, search]);
+  
+  // Handle image uploads routine
+  const handleImageUpload = async (files: FileList | null) => {
+    if (!files) return;
+    setUploading(true);
+    const newImages: string[] = [];
+
+    for (let i = 0; i < files.length && (images.length + newImages.length) < 6; i++) {
+      const file = files[i];
+      if (!file.type.startsWith('image/')) continue;
+
+      try {
+        let url = '';
+
+        if (UPLOAD_MODE === 'cloudinary') {
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!);
+
+          const res = await fetch(
+            `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+            { method: 'POST', body: formData }
+          );
+          const data = await res.json();
+          url = data.secure_url;
+        } else {
+          // Local upload
+          const formData = new FormData();
+          formData.append('file', file);
+          const res = await fetch('/api/upload', { method: 'POST', body: formData });
+          const data = await res.json();
+          url = data.url;
+        }
+
+        if (url) newImages.push(url);
+      } catch (err) {
+        toast.error('Upload failed');
+      }
+    }
+
+    setImages(prev => [...prev, ...newImages].slice(0, 6));
+    setUploading(false);
+    toast.success(`Added ${newImages.length} image(s)`);
+  };
+  // Remove image routine
+  const removeImage = (index: number) => {
+    setImages(prev => prev.filter((_, i) => i !== index));
+  };
+  // Form submission routine
+  const handleSubmit = async () => {
+    if (!form.make || !form.model || !form.licensePlate) {
+      toast.error('Fill required fields');
+      return;
+    }
+
+    const payload = {
+      ...form,
+      year: Number(form.year),
+      pricePerHour: Number(form.pricePerHour),
+      pricePerDay: Number(form.pricePerDay),
+      images: images.length > 0 ? images : undefined
+    };
+
+    try {
+      const url = editingVehicle 
+      ? `${process.env.NEXT_PUBLIC_API_URL}/vehicles/${editingVehicle._id}`
+      : `${process.env.NEXT_PUBLIC_API_URL}/vehicles/`;
+
+      const method = editingVehicle ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) throw new Error();
+      toast.success(editingVehicle ? 'Vehicle updated!' : 'Vehicle added!');
+      mutate('/vehicles');
+      setOpen(false);
+      setEditingVehicle(null);
+      setForm({ make: '', model: '', year: '', type: 'car', licensePlate: '', pricePerHour: '', pricePerDay: '', location: '' });
+      setImages([]);
+    } catch {
+      toast.error('Failed to save');
+    }
+  };
+
+  const openEdit = (v: Vehicle) => {
+    setEditingVehicle(v);
+    setForm({
+      make: v.make, model: v.model, year: v.year.toString(), type: v.type,
+      licensePlate: v.licensePlate, pricePerHour: v.pricePerHour.toString(),
+      pricePerDay: v.pricePerDay.toString(), location: v.location || ''
+    });
+    setImages(v.images || []);
+    setOpen(true);
+  };
+
+  if (isLoading) return <div className="text-center py-20">Loading...</div>;
+  if (error) return <div className="text-center py-20 text-red-600">Error loading vehicles</div>;
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-xl font-semibold text-blue-900">Fleet ({vehicles.length})</h1>
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Input
+              placeholder="Search by make, model, license..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-10 w-96"
+            />
+          </div>
+          <span className="text-sm text-gray-500">
+            Upload: <strong>{UPLOAD_MODE === 'cloudinary' ? 'Cloudinary' : 'Local'}</strong>
+          </span>
+          <div className="flex rounded-lg  ">
+            <Button
+              variant={viewMode === 'card' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('card')}
+              className="mr-1.5 rounded-md"
+            >
+              <Grid3x3 className="w-4 h-4" />
+            </Button>
+            <Button
+              variant={viewMode === 'list' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('list')}
+              className="rounded-md"
+            >
+              <List className="w-4 h-4" />
+            </Button>
+          </div>
+          
+          <Button className="flex items-center cursor-pointer" onClick={() => { setEditingVehicle(null); setImages([]); setOpen(true); }}>
+            <Plus className="w-5 h-5 mr-2" /> Add Vehicle
+          </Button>
+        </div>
+      </div>
+
+      {/* CARD VIEW */}
+      {viewMode === 'card' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filtered.map((v: any) => (
+            <Card key={v._id} className="overflow-hidden hover:shadow-xl transition">
+              
+              {v.images?.[0] ? (
+                <Image src={v.images[0]} alt={v.model} width={400} height={300} className="w-full h-48 object-cover" />
+              ) : (
+                <div className="bg-gray-200 border-2 border-dashed rounded-t-xl w-full h-48 flex items-center justify-center">
+                  <Car className="w-16 h-16 text-gray-400" />
+                </div>
+              )}
+              <div className="p-6">
+                <h3 className="text-xl font-bold mb-2">{v.make} {v.model} ({v.year})</h3>
+                <p className="text-gray-600 mb-4">License: <strong>{v.licensePlate}</strong></p>
+                <div className="text-sm space-y-1">
+                  <p>Rate: <strong>R{v.pricePerHour}/hr • R{v.pricePerDay}/day</strong></p>
+                  <p>Status: <Badge variant={v.isAvailable ? 'default' : 'destructive'}>
+                    {v.isAvailable ? 'Available' : 'Booked'}
+                  </Badge></p>
+                </div>
+                <div className="flex gap-2 mt-6">
+                  <Button size="sm" onClick={() => openEdit(v)} className="flex">
+                    <Edit className="w-4 h-4 mr-1" /> Edit
+                  </Button>
+                  <Button size="sm" variant="destructive">
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* LIST VIEW */}
+      {viewMode === 'list' && (
+        <Card>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="border-b">
+                <tr>
+                  <th className="text-left p-4 font-medium">Image</th>
+                  <th className="text-left p-4 font-medium">Vehicle</th>
+                  <th className="text-left p-4 font-medium">License</th>
+                  <th className="text-left p-4 font-medium">Rate</th>
+                  <th className="text-left p-4 font-medium">Status</th>
+                  <th className="text-right p-4 font-medium">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((v: any) => (
+                  <tr key={v._id} className="border-b hover:bg-gray-50">
+                    <td className="p-4">
+                      {v.images?.[0] ? (
+                        <Image src={v.images[0]} alt="" width={80} height={60} className="rounded" />
+                      ) : (
+                        <div className="bg-gray-200 border-2 border-dashed rounded w-20 h-14" />
+                      )}
+                    </td>
+                    <td className="p-4">{v.make} {v.model} ({v.year})</td>
+                    <td className="p-4">{v.licensePlate}</td>
+                    <td className="p-4">R{v.pricePerHour}/hr • R{v.pricePerDay}/day</td>
+                    <td className="p-4">
+                      <Badge variant={v.isAvailable ? 'default' : 'destructive'}>
+                        {v.isAvailable ? 'Available' : 'Booked'}
+                      </Badge>
+                    </td>
+                    <td className="p-4 text-right">
+                      <Button size="sm" onClick={() => openEdit(v)} className="mr-2">
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button size="sm" variant="destructive">
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )}
+
+      {/* Modal with image upload */}
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-4xl max-h-screen overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editingVehicle ? 'Edit' : 'Add'} Vehicle</DialogTitle>
+          </DialogHeader>
+
+          <div className="mb-6">
+            <Label>Vehicle Photos (up to 6)</Label>
+            <div className="grid grid-cols-3 gap-4 mt-4">
+              {images.map((src, i) => (
+                <div key={i} className="relative group">
+                  <Image src={src} alt={`Photo ${i + 1}`} width={300} height={200} className="rounded-lg object-cover w-full h-48" />
+                  <button
+                    onClick={() => removeImage(i)}
+                    className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+              {images.length < 6 && (
+                <label className="border-2 border-dashed border-gray-300 rounded-lg h-48 flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 transition">
+                  <Upload className="w-10 h-10 text-gray-400" />
+                  <span className="mt-2 text-sm text-gray-600">Add Photos</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={(e) => handleImageUpload(e.target.files)}
+                    className="hidden"
+                  />
+                </label>
+              )}
+            </div>
+          </div>
+
+          {/* Form fields */}
+          <div className="grid grid-cols-2 gap-4">
+            <div><Label>Make</Label><Input value={form.make} onChange={e => setForm({ ...form, make: e.target.value })} /></div>
+            <div><Label>Model</Label><Input value={form.model} onChange={e => setForm({ ...form, model: e.target.value })} /></div>
+            <div><Label>Year</Label><Input type="number" value={form.year} onChange={e => setForm({ ...form, year: e.target.value })} /></div>
+            <div><Label>Type</Label>
+              <Select value={form.type} onValueChange={val => setForm({ ...form, type: val })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="car">Car</SelectItem>
+                  <SelectItem value="bike">Bike</SelectItem>
+                  <SelectItem value="scooter">Scooter</SelectItem>
+                  <SelectItem value="truck">Truck</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div><Label>License Plate</Label><Input value={form.licensePlate} onChange={e => setForm({ ...form, licensePlate: e.target.value })} /></div>
+            <div><Label>Location</Label><Input value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} /></div>
+            <div><Label>Price per Hour (R)</Label><Input type="number" value={form.pricePerHour} onChange={e => setForm({ ...form, pricePerHour: e.target.value })} /></div>
+            <div><Label>Price per Day (R)</Label><Input type="number" value={form.pricePerDay} onChange={e => setForm({ ...form, pricePerDay: e.target.value })} /></div>
+          </div>
+
+          <div className="flex justify-end gap-3 mt-6">
+            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button onClick={handleSubmit} disabled={uploading}>
+              {uploading ? 'Uploading...' : 'Save Vehicle'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

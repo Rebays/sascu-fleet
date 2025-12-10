@@ -64,5 +64,53 @@ const getMyBookings = catchAsync(async (req, res) => {
   res.json(bookings);
 });
 
+const getAllBookings = catchAsync(async (req, res) => {
+  const bookings = await Booking.find()
+    .populate('user', 'name email phone')
+    .populate('vehicle', 'make model licensePlate type')
+    .sort({ createdAt: -1 });
 
-module.exports = { createBooking, getMyBookings };
+  res.status(200).json({
+    success: true,
+    count: bookings.length,
+    data: bookings
+  });
+});
+
+const getBookingById = catchAsync(async (req, res) => {
+  const booking = await Booking.findById(req.params.id)
+    .populate('user', 'name email')
+    .populate('vehicle', 'make model licensePlate');
+
+  if (!booking) return res.status(404).json({ message: 'Booking not found' });
+
+  res.json({ success: true, data: booking });
+});
+
+const createBookingAdmin = catchAsync(async (req, res) => {
+  const booking = await Booking.create(req.body);
+  await booking.populate('user vehicle');
+  res.status(201).json({ success: true, data: booking });
+});
+
+const updateBookingAdmin = catchAsync(async (req, res) => {
+  const booking = await Booking.findByIdAndUpdate(
+    req.params.id,
+    req.body,
+    { new: true, runValidators: true }
+  ).populate('user vehicle');
+
+  if (!booking) return res.status(404).json({ message: 'Booking not found' });
+
+  res.json({ success: true, data: booking });
+});
+
+const deleteBookingAdmin = catchAsync(async (req, res) => {
+  const booking = await Booking.findByIdAndDelete(req.params.id);
+  if (!booking) return res.status(404).json({ message: 'Booking not found' });
+
+  res.json({ success: true, message: 'Booking deleted' });
+});
+
+
+module.exports = { createBooking, getMyBookings, getAllBookings, getBookingById, createBookingAdmin, updateBookingAdmin, deleteBookingAdmin };

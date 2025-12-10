@@ -18,6 +18,7 @@ app.use(morgan('dev'));
 app.use(express.json());
 
 app.get('/', (req, res) => res.json({ message: 'Vehicle Booking API Running' }));
+app.get('/', (req, res) => res.json({ message: 'SASCU Fleet API Running' }));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/vehicles', vehicleRoutes);
