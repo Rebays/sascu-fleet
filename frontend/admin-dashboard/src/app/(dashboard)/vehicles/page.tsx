@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Car, Edit, Trash2, Plus, Upload, X, Grid3x3, List, Search } from 'lucide-react';
+import { Car, Edit, Trash2, Plus, Upload, X, Grid3x3, List, Search, Loader } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import useSWR, { mutate } from 'swr';
 import fetcher  from '@/lib/api';
@@ -156,7 +156,7 @@ export default function VehiclesPage() {
     setOpen(true);
   };
 
-  if (isLoading) return <div className="text-center py-20">Loading...</div>;
+  if (isLoading) return <div className="text-center py-20"><Loader className="animate-spin flex w-6 h-6 mx-auto" />Loading Fleet...</div>;
   if (error) return <div className="text-center py-20 text-red-600">Error loading vehicles</div>;
 
   return (

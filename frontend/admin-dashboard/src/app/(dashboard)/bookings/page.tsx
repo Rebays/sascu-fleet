@@ -47,6 +47,8 @@ import {
   Grid3x3,
   Search,
   Download,
+  Eye,
+  Loader,
 } from 'lucide-react';
 
 import useSWR, { mutate } from 'swr';
@@ -59,8 +61,8 @@ export default function AdminBookingsPage() {
   const { data: usersRes, error: uError, isLoading: uLoading } = useSWR<any>('/users/all', fetcher);
 
   
-  const bookings = bookingsRes?.data?.data || [];
-  const vehicles = vehiclesRes || [];
+  const bookings = bookingsRes?.data || [];
+  const vehicles = vehiclesRes?.data || vehiclesRes || [];
   const users = usersRes?.data || [];
 
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
@@ -72,6 +74,8 @@ export default function AdminBookingsPage() {
     vehicleId: '',
     startDate: '',
     endDate: '',
+    deposit: '0.00',
+    balance: '0.00',
     status: 'pending',
     paymentStatus: 'pending',
     totalPrice:'0.00'
@@ -106,6 +110,8 @@ export default function AdminBookingsPage() {
       vehicleId: '',
       startDate: '',
       endDate: '',
+      deposit: '0.00',
+      balance: '0.00',
       status: 'pending',
       paymentStatus: 'pending',
       totalPrice:'0.00'
@@ -116,11 +122,15 @@ export default function AdminBookingsPage() {
 
   const openEditModal = (booking: any) => {
     setEditing(booking);
+    console.log('booking to edit:');
+    console.log(booking)
     setForm({
       userId: booking.user?._id || '',
       vehicleId: booking.vehicle?._id || '',
       startDate: booking.startDate.slice(0, 16),
       endDate: booking.endDate.slice(0, 16),
+      deposit: booking.deposit.toString(),
+      balance: booking.balance.toString(),
       status: booking.status,
       paymentStatus: booking.paymentStatus,
       totalPrice: booking.totalPrice.toString(),
@@ -153,6 +163,8 @@ export default function AdminBookingsPage() {
       vehicle: form.vehicleId,
       startDate: new Date(form.startDate).toISOString(),
       endDate: new Date(form.endDate).toISOString(),
+      deposit: parseFloat(form.deposit) || 0,
+      balance: totalPrice - (parseFloat(form.deposit) || 0),
       status: form.status,
       paymentStatus: form.paymentStatus,
       totalPrice: totalPrice,
@@ -172,12 +184,15 @@ export default function AdminBookingsPage() {
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) throw new Error();
+      const result = await res.json();
+      if (!res.ok){
+        toast.error(result.message || 'Failed to save booking');
+      } 
       toast.success(editing ? 'Booking updated!' : 'Booking created!');
       mutate('/bookings/admin/all');
       setOpen(false);
     } catch (err) {
-      toast.error('Failed to save booking');
+      toast.error('Network error');
     }
   };
 
@@ -225,6 +240,8 @@ export default function AdminBookingsPage() {
       'Start Date',
       'End Date',
       'Total Price',
+      'Deposit',
+      'Balance',
       'Status',
       'Payment Status',
     ];
@@ -257,7 +274,7 @@ export default function AdminBookingsPage() {
     document.body.removeChild(link);
   };
 
-  if (bLoading) return <div className="text-center py-20">Loading bookings...</div>;
+  if (bLoading) return <div className="text-center py-20 "><Loader className="animate-spin flex w-6 h-6 mx-auto" />Loading bookings...</div>;
   if(vLoading || uLoading) return <div className="text-center py-20">Loading support data...</div>
   if (bError || vError || uError) return <div className="text-center py-20 text-red-600">Failed to load bookings</div>;
 
@@ -336,7 +353,7 @@ export default function AdminBookingsPage() {
               <div className="space-y-2">
                 <p className="flex items-center gap-2">
                   <Car className="w-5 h-5 text-gray-500" />
-                  {b.vehicle?.make} {b.vehicle?.model}
+                  {b.vehicle?.make} {b.vehicle?.model} <span className="bg-amber-300 text-black px-1 rounded font-bold">{b.vehicle?.licensePlate}</span>
                 </p>
                 <p className="flex items-center gap-2">
                   <Calendar className="w-5 h-5 text-gray-500" />
@@ -345,10 +362,13 @@ export default function AdminBookingsPage() {
               </div>
 
               <div className="flex justify-between items-end mt-6">
-                <p className="text-2xl font-bold">R{b.totalPrice}</p>
+                <p className="text-2xl font-bold"><span className='text-xl'>SBD</span>{b.totalPrice}</p>
                 <div className="flex gap-2">
-                  <Button size="sm" variant="outline">
+                  <Button size="sm" variant="outline" onClick={() => openEditModal(b)}>
                     <Edit className="w-4 h-4" />
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => window.location.href = `/bookings/${b._id}`}>
+                    <Eye className="w-4 h-4" />
                   </Button>
                   <Button size="sm" variant="destructive">
                     <Trash2 className="w-4 h-4" />
@@ -381,18 +401,18 @@ export default function AdminBookingsPage() {
                   <tr key={b._id} className="border-b hover:bg-gray-50">
                     <td className="p-4 font-mono">#{b.bookingRef}</td>
                     <td className="p-4">{b.user?.name || 'N/A'}</td>
-                    <td className="p-4">{b.vehicle?.make} {b.vehicle?.model}</td>
+                    <td className="p-4">{b.vehicle?.make} {b.vehicle?.model} <span className="bg-amber-300 text-black px-1 rounded font-bold">{b.vehicle?.licensePlate}</span></td>
                     <td className="p-4">
                       {formatDate(b.startDate)} → {formatDate(b.endDate)}
                     </td>
-                    <td className="p-4 font-bold">R{b.totalPrice}</td>
+                    <td className="p-4 font-bold">SBD{b.totalPrice}</td>
                     <td className="p-4">
                       <Badge variant={b.paymentStatus === 'paid' ? 'default' : 'secondary'}>
                         {b.paymentStatus}
                       </Badge>
                     </td>
                     <td className="p-4 text-right">
-                      <Button size="sm" variant="outline" className="mr-2">
+                      <Button size="sm" variant="outline" className="mr-2" onClick={() => openEditModal(b)}>
                         <Edit className="w-4 h-4" />
                       </Button>
                       <Button size="sm" variant="destructive">
@@ -539,6 +559,20 @@ export default function AdminBookingsPage() {
                 />
               </div>
             </div>
+
+            {/* Deposit Input */}
+  <div>
+    <Label>Deposit Amount (SBD)</Label>
+    <Input
+      type="number"
+      placeholder="0"
+      value={form.deposit || ''}
+      onChange={(e) => setForm({ ...form, deposit: e.target.value })}
+      min="0"
+      step="50"
+    />
+    <p className="text-sm text-gray-500 mt-1">Amount customer pays upfront</p>
+  </div>
 
             {/* TOTAL PRICE - AUTO CALCULATED */}
       <div className="rounded-lg bg-blue-50 p-4 border border-blue-200">

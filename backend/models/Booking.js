@@ -7,6 +7,22 @@ const bookingSchema = new mongoose.Schema({
   endDate: { type: Date, required: true },
   totalPrice: { type: Number, required: true },
   bookingRef: {type: String,unique: true,sparse: true},
+  deposit: { type: Number, default: 0 },
+  balance: { type: Number, default: 0 },
+  status: {
+    type: String,
+    enum: ['pending', 'confirmed', 'cancelled', 'completed'],
+    default: 'pending'
+  },
+  payments: [
+  {
+    amount: { type: Number, required: true },
+    method: { type: String, default: 'manual' },
+    note: String,
+    recordedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    createdAt: { type: Date, default: Date.now }
+  }
+  ],
   paymentStatus: {
     type: String,
     enum: ['pending', 'partial', 'paid', 'failed', 'refunded'],

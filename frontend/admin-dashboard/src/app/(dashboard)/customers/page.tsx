@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { User, Mail, Phone, Edit, Trash2, Plus, Shield, List, Grid3x3, Search } from 'lucide-react';
+import { User, Mail, Phone, Edit, Trash2, Plus, Shield, List, Grid3x3, Search, Loader } from 'lucide-react';
 import useSWR, { mutate } from 'swr';
 import { fetcher } from '@/lib/api';
 import toast from 'react-hot-toast';
@@ -107,7 +107,7 @@ export default function CustomersPage() {
     .catch(() => toast.error('Failed to delete'));
   };
 
-  if (isLoading) return <div className="text-center py-20">Loading customers...</div>;
+  if (isLoading) return <div className="text-center py-20"><Loader className="animate-spin flex w-6 h-6 mx-auto" />Loading customers...</div>;
   if (error) return <div className="text-center py-20 text-red-600">Error loading customers</div>;
 
   return (
