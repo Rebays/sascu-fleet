@@ -49,18 +49,24 @@ import {
   Download,
   Eye,
   Loader,
+  ChevronLeft,
+  ChevronRight,
+  AlertTriangle,
+  CheckCircle2,
+  XCircle,
 } from 'lucide-react';
-
 import useSWR, { mutate } from 'swr';
 import { fetcher } from '@/lib/api';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
+
+const PAGE_SIZE = 9;
 
 export default function AdminBookingsPage() {
   const { data: bookingsRes, error: bError, isLoading: bLoading } = useSWR<any>('/bookings/admin/all', fetcher);
   const { data: vehiclesRes, error: vError, isLoading: vLoading } = useSWR<any>('/vehicles', fetcher);
   const { data: usersRes, error: uError, isLoading: uLoading } = useSWR<any>('/users/all', fetcher);
 
-  
+
   const bookings = bookingsRes?.data || [];
   const vehicles = vehiclesRes?.data || vehiclesRes || [];
   const users = usersRes?.data || [];
@@ -78,7 +84,7 @@ export default function AdminBookingsPage() {
     balance: '0.00',
     status: 'pending',
     paymentStatus: 'pending',
-    totalPrice:'0.00'
+    totalPrice: '0.00'
   });
 
   // Picker states
@@ -87,8 +93,11 @@ export default function AdminBookingsPage() {
   const [creatingUser, setCreatingUser] = useState(false);
   const [newUserName, setNewUserName] = useState('');
   const [newUserEmail, setNewUserEmail] = useState('');
-
+  const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState('');
+
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [bookingToDelete, setBookingToDelete] = useState<any>(null);
 
   //search functionality
   const filtered = useMemo(() => {
@@ -102,7 +111,15 @@ export default function AdminBookingsPage() {
       b.vehicle?.model?.toLowerCase().includes(lower)
     );
   }, [bookings, search]);
-  
+
+  //pagination
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const paginatedBookings = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filtered.slice(start, start + PAGE_SIZE);
+  }, [filtered, currentPage]);
+
+
   const openCreateModal = () => {
     setEditing(null);
     setForm({
@@ -114,7 +131,7 @@ export default function AdminBookingsPage() {
       balance: '0.00',
       status: 'pending',
       paymentStatus: 'pending',
-      totalPrice:'0.00'
+      totalPrice: '0.00'
     });
     setCreatingUser(false);
     setOpen(true);
@@ -139,17 +156,33 @@ export default function AdminBookingsPage() {
     setOpen(true);
   };
 
+  const openDeleteModal = (booking: any) => {
+    setBookingToDelete(booking);
+    setDeleteModalOpen(true);
+  };
+
   const handleSubmit = async () => {
     if (!form.userId || !form.vehicleId || !form.startDate || !form.endDate) {
       toast.error('Please fill all required fields');
       return;
     }
 
-    //calculate total price based on vehicle daily rate and number of days
-   
     const vehicle = vehicles.find((v: any) => v._id === form.vehicleId);
     if (!vehicle) {
       toast.error('Vehicle not found');
+      return;
+    }
+
+    const conflict = bookings.find((b: any) =>
+      b.vehicle?._id === form.vehicleId &&
+      b._id !== editing?._id &&
+      b.status !== 'cancelled' &&
+      new Date(b.startDate) < new Date(form.endDate) &&
+      new Date(b.endDate) > new Date(form.startDate)
+    );
+
+    if (conflict) {
+      toast.error('This vehicle is already booked during the selected dates');
       return;
     }
 
@@ -184,13 +217,20 @@ export default function AdminBookingsPage() {
         body: JSON.stringify(payload),
       });
 
+      //Handle Response base on return HTTP code
       const result = await res.json();
-      if (!res.ok){
+
+      if (result.success === false) {
         toast.error(result.message || 'Failed to save booking');
-      } 
-      toast.success(editing ? 'Booking updated!' : 'Booking created!');
+        console.error('Error response:', result);
+      }
+      else {
+        toast.success(editing ? 'Booking updated!' : 'Booking created!');
+      }
+
       mutate('/bookings/admin/all');
       setOpen(false);
+
     } catch (err) {
       toast.error('Network error');
     }
@@ -267,7 +307,7 @@ export default function AdminBookingsPage() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `bookings-export-${new Date().toISOString().slice(0,10)}.csv`);
+    link.setAttribute('download', `bookings-export-${new Date().toISOString().slice(0, 10)}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
@@ -275,10 +315,37 @@ export default function AdminBookingsPage() {
   };
 
   if (bLoading) return <div className="text-center py-20 "><Loader className="animate-spin flex w-6 h-6 mx-auto" />Loading bookings...</div>;
-  if(vLoading || uLoading) return <div className="text-center py-20">Loading support data...</div>
+  if (vLoading || uLoading) return <div className="text-center py-20">Loading support data...</div>
   if (bError || vError || uError) return <div className="text-center py-20 text-red-600">Failed to load bookings</div>;
 
   const formatDate = (d: string) => new Date(d).toLocaleDateString('en-ZA');
+
+  const handleDeleteBooking = async () => {
+    if (!bookingToDelete) return;
+
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookings/admin/${bookingToDelete._id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+
+      const result = await res.json();
+
+      if (result.success === false) {
+        toast.error(result.message || 'Failed to delete booking');
+      } else {
+        toast.success('Booking deleted successfully!');
+        mutate('/bookings/admin/all');
+      }
+    } catch (err) {
+      toast.error('Network error');
+    } finally {
+      setDeleteModalOpen(false);
+      setBookingToDelete(null);
+    }
+  };
 
   return (
     <div className="p-6">
@@ -323,14 +390,14 @@ export default function AdminBookingsPage() {
             New Booking
           </Button>
         </div>
-        
+
       </div>
 
       {/* Bookings List */}
       {/* CARD VIEW */}
       {viewMode === 'card' && (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((b: any) => (
+          {paginatedBookings.map((b: any) => (
             <Card key={b._id} className="p-6 hover:shadow-lg transition">
               <div className="flex justify-between items-start mb-4">
                 <div>
@@ -344,7 +411,7 @@ export default function AdminBookingsPage() {
                   <Badge variant={b.paymentStatus === 'paid' ? 'default' : 'secondary'}>
                     {b.paymentStatus}
                   </Badge>
-                  <Badge className="ml-2" variant={b.status === 'confirmed' ? 'default' : 'outline'}>
+                  <Badge className="ml-2" variant={b.status === 'confirmed' ? 'success' : b.status === 'cancelled' ? 'destructive' : 'outline'}>
                     {b.status}
                   </Badge>
                 </div>
@@ -370,7 +437,7 @@ export default function AdminBookingsPage() {
                   <Button size="sm" variant="outline" onClick={() => window.location.href = `/bookings/${b._id}`}>
                     <Eye className="w-4 h-4" />
                   </Button>
-                  <Button size="sm" variant="destructive">
+                  <Button size="sm" variant="destructive" onClick={() => openDeleteModal(b)}>
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>
@@ -397,7 +464,7 @@ export default function AdminBookingsPage() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((b: any) => (
+                {paginatedBookings.map((b: any) => (
                   <tr key={b._id} className="border-b hover:bg-gray-50">
                     <td className="p-4 font-mono">#{b.bookingRef}</td>
                     <td className="p-4">{b.user?.name || 'N/A'}</td>
@@ -415,7 +482,7 @@ export default function AdminBookingsPage() {
                       <Button size="sm" variant="outline" className="mr-2" onClick={() => openEditModal(b)}>
                         <Edit className="w-4 h-4" />
                       </Button>
-                      <Button size="sm" variant="destructive">
+                      <Button size="sm" variant="destructive" onClick={() => openDeleteModal(b)}>
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </td>
@@ -425,6 +492,31 @@ export default function AdminBookingsPage() {
             </table>
           </div>
         </Card>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center gap-4 mt-12">
+          <Button
+            variant="outline"
+            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+            disabled={currentPage === 1}
+          >
+            <ChevronLeft className="w-5 h-5 mr-1" />
+          </Button>
+
+          <span className="text-sm font-medium">
+            Page {currentPage} of {totalPages}
+          </span>
+
+          <Button
+            variant="outline"
+            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+            disabled={currentPage === totalPages}
+          >
+            <ChevronRight className="w-5 h-5 ml-1" />
+          </Button>
+        </div>
       )}
 
       {/* Create/Edit Modal */}
@@ -442,9 +534,8 @@ export default function AdminBookingsPage() {
                 <PopoverTrigger asChild>
                   <Button variant="outline" role="combobox" className="w-full flex justify-between">
                     {form.vehicleId
-                      ? `${vehicles.find((v: any) => v._id === form.vehicleId)?.make} ${
-                          vehicles.find((v: any) => v._id === form.vehicleId)?.model
-                        }`
+                      ? `${vehicles.find((v: any) => v._id === form.vehicleId)?.make} ${vehicles.find((v: any) => v._id === form.vehicleId)?.model
+                      }`
                       : 'Select vehicle...'}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50 flex" />
                   </Button>
@@ -463,9 +554,8 @@ export default function AdminBookingsPage() {
                           }}
                         >
                           <Check
-                            className={`mr-2 h-4 w-4 ${
-                              form.vehicleId === v._id ? 'opacity-100' : 'opacity-0'
-                            }`}
+                            className={`mr-2 h-4 w-4 ${form.vehicleId === v._id ? 'opacity-100' : 'opacity-0'
+                              }`}
                           />
                           {v.make} {v.model} • {v.licensePlate}
                         </CommandItem>
@@ -527,9 +617,8 @@ export default function AdminBookingsPage() {
                           }}
                         >
                           <Check
-                            className={`mr-2 h-4 w-4 ${
-                              form.userId === u._id ? 'opacity-100' : 'opacity-0'
-                            }`}
+                            className={`mr-2 h-4 w-4 ${form.userId === u._id ? 'opacity-100' : 'opacity-0'
+                              }`}
                           />
                           {u.name} • {u.email}
                         </CommandItem>
@@ -560,51 +649,98 @@ export default function AdminBookingsPage() {
               </div>
             </div>
 
+            {/* AVAILABILITY CHECK MESSAGE */}
+            {form.vehicleId && form.startDate && form.endDate && (
+              <div className="p-4 rounded-lg border">
+                {(() => {
+                  const selectedVehicle = vehicles.find((v: any) => v._id === form.vehicleId);
+                  if (!selectedVehicle) return null;
+
+                  const start = new Date(form.startDate);
+                  const end = new Date(form.endDate);
+
+                  // Find conflicting bookings (exclude current if editing)
+                  const conflict = bookings.find((b: any) =>
+                    b.vehicle?._id === form.vehicleId &&
+                    b._id !== editing?._id && // don't count self when editing
+                    b.status !== 'cancelled' &&
+                    new Date(b.startDate) < end &&
+                    new Date(b.endDate) > start
+                  );
+
+                  if (conflict) {
+                    return (
+                      <div className="flex items-start gap-3 text-red-600">
+                        <XCircle className="w-6 h-6 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="font-semibold">Vehicle Unavailable</p>
+                          <p className="text-sm">
+                            This vehicle is already booked from{' '}
+                            {new Date(conflict.startDate).toLocaleDateString()} to{' '}
+                            {new Date(conflict.endDate).toLocaleDateString()}.
+                          </p>
+                          <p className="text-sm mt-1">
+                            Booking Ref: #{conflict.bookingRef}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="flex items-center gap-3 text-green-600">
+                      <CheckCircle2 className="w-6 h-6 shrink-0" />
+                      <p className="font-semibold">Vehicle Available!</p>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+
             {/* Deposit Input */}
-  <div>
-    <Label>Deposit Amount (SBD)</Label>
-    <Input
-      type="number"
-      placeholder="0"
-      value={form.deposit || ''}
-      onChange={(e) => setForm({ ...form, deposit: e.target.value })}
-      min="0"
-      step="50"
-    />
-    <p className="text-sm text-gray-500 mt-1">Amount customer pays upfront</p>
-  </div>
+            <div>
+              <Label>Deposit Amount (SBD)</Label>
+              <Input
+                type="number"
+                placeholder="0"
+                value={form.deposit || ''}
+                onChange={(e) => setForm({ ...form, deposit: e.target.value })}
+                min="0"
+                step="50"
+              />
+              <p className="text-sm text-gray-500 mt-1">Amount customer pays upfront</p>
+            </div>
 
             {/* TOTAL PRICE - AUTO CALCULATED */}
-      <div className="rounded-lg bg-blue-50 p-4 border border-blue-200">
-        <div className="flex justify-between items-center">
-          <span className="text-lg font-semibold text-blue-900">Total Price</span>
-          <span className="text-3xl font-bold text-blue-700">
-            SBD{(() => {
-              if (!form.vehicleId || !form.startDate || !form.endDate) return '0';
-              const vehicle = vehicles.find((v: any) => v._id === form.vehicleId);
-              if (!vehicle) return '0';
+            <div className="rounded-lg bg-blue-50 p-4 border border-blue-200">
+              <div className="flex justify-between items-center">
+                <span className="text-lg font-semibold text-blue-900">Total Price</span>
+                <span className="text-3xl font-bold text-blue-700">
+                  SBD{(() => {
+                    if (!form.vehicleId || !form.startDate || !form.endDate) return '0';
+                    const vehicle = vehicles.find((v: any) => v._id === form.vehicleId);
+                    if (!vehicle) return '0';
 
-              const start = new Date(form.startDate);
-              const end = new Date(form.endDate);
-              const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) || 1;
+                    const start = new Date(form.startDate);
+                    const end = new Date(form.endDate);
+                    const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) || 1;
 
-              return (days * vehicle.pricePerDay).toLocaleString();
-            })()}
-          </span>
-        </div>
-        <p className="text-sm text-blue-600 mt-1">
-          {(() => {
-            if (!form.startDate || !form.endDate) return '';
-            const days = Math.ceil(
-              (new Date(form.endDate).getTime() - new Date(form.startDate).getTime()) /
-                (1000 * 60 * 60 * 24)
-            ) || 1;
-            return `${days} day${days > 1 ? 's' : ''} × SBD${
-              vehicles.find((v: any) => v._id === form.vehicleId)?.pricePerDay || 0
-            }/day`;
-          })()}
-        </p>
-      </div>
+                    return (days * vehicle.pricePerDay).toLocaleString();
+                  })()}
+                </span>
+              </div>
+              <p className="text-sm text-blue-600 mt-1">
+                {(() => {
+                  if (!form.startDate || !form.endDate) return '';
+                  const days = Math.ceil(
+                    (new Date(form.endDate).getTime() - new Date(form.startDate).getTime()) /
+                    (1000 * 60 * 60 * 24)
+                  ) || 1;
+                  return `${days} day${days > 1 ? 's' : ''} × SBD${vehicles.find((v: any) => v._id === form.vehicleId)?.pricePerDay || 0
+                    }/day`;
+                })()}
+              </p>
+            </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -639,7 +775,62 @@ export default function AdminBookingsPage() {
             <Button variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSubmit}>Save Booking</Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={(() => {
+                // Disable save if there's a conflict
+                if (!form.vehicleId || !form.startDate || !form.endDate) return false;
+                const conflict = bookings.find((b: any) =>
+                  b.vehicle?._id === form.vehicleId &&
+                  b._id !== editing?._id &&
+                  b.status !== 'cancelled' &&
+                  new Date(b.startDate) < new Date(form.endDate) &&
+                  new Date(b.endDate) > new Date(form.startDate)
+                );
+                return !!conflict;
+              })()}
+            >Save Booking</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3 text-red-600">
+              <AlertTriangle className="w-6 h-6" />
+              Delete Booking?
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-6">
+            <p className="text-lg">Are you sure you want to delete this booking?</p>
+            {bookingToDelete && (
+              <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                <p className="font-mono text-lg">#{bookingToDelete.bookingRef}</p>
+                <p className="text-gray-600">
+                  <User className="inline w-4 h-4" /> {bookingToDelete.user?.name || 'N/A'}
+                </p>
+                <p className="text-gray-600">
+                  <Car className="inline w-4 h-4" /> {bookingToDelete.vehicle?.make} {bookingToDelete.vehicle?.model}
+                </p>
+                <p className="text-gray-600">
+                  <Calendar className="inline w-4 h-4" /> {formatDate(bookingToDelete.startDate)} → {formatDate(bookingToDelete.endDate)}
+                </p>
+                <p className="text-xl font-bold mt-2">SBD{bookingToDelete.totalPrice}</p>
+              </div>
+            )}
+            <p className="text-sm text-red-600 mt-4 font-medium">
+              This action cannot be undone.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteBooking}>
+              Yes, Delete Booking
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

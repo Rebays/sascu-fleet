@@ -16,23 +16,28 @@ const createBooking = catchAsync(async (req, res) => {
   const { vehicleId, startDate, endDate } = req.body;
   const userId = req.user.id;
 
+  
+
+  // // Check for overlapping bookings
+  // const conflict = await Booking.findOne({
+  //   vehicle: vehicleId,
+  //   status: { $in: ['pending', 'confirmed', 'ongoing'] },
+  //   $or: [
+  //     { startDate: { $lte: endDate }, endDate: { $gte: startDate } }
+  //   ]
+  // });
+
+  // if (conflict) {
+  //   return res.status(400).json({ message: 'Vehicle already booked for these dates' });
+  // }
+
+  //Check vehicle availability
   const vehicle = await Vehicle.findById(vehicleId);
   if (!vehicle || !vehicle.isAvailable) {
     return res.status(400).json({ message: 'Vehicle not available' });
   }
 
-  // Check for overlapping bookings
-  const conflict = await Booking.findOne({
-    vehicle: vehicleId,
-    status: { $in: ['pending', 'confirmed', 'ongoing'] },
-    $or: [
-      { startDate: { $lte: endDate }, endDate: { $gte: startDate } }
-    ]
-  });
-
-  if (conflict) {
-    return res.status(400).json({ message: 'Vehicle already booked for these dates' });
-  }
+  
 
   const hours = (new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60);
   const days = hours / 24;
@@ -55,6 +60,8 @@ const createBooking = catchAsync(async (req, res) => {
       paidAmount: 0
     });
 
+    console.log('Invoice created:', invoice);
+
     //Attach invoice to booking
     booking.invoice = invoice._id;
     await booking.save();
@@ -62,7 +69,7 @@ const createBooking = catchAsync(async (req, res) => {
     await Vehicle.findByIdAndUpdate(vehicleId, { isAvailable: false });
     await booking.populate('vehicle');
 
-  res.status(201).json(booking);
+    res.status(201).json(booking);
 });
 
 const getMyBookings = catchAsync(async (req, res) => {
@@ -89,7 +96,7 @@ const getAllBookings = catchAsync(async (req, res) => {
 const getBookingById = catchAsync(async (req, res) => {
   const booking = await Booking.findById(req.params.id)
     .populate('user', 'name email')
-    .populate('vehicle', 'make model licensePlate');
+    .populate('vehicle', 'make model licensePlate images pricePerDay pricePerHour');
 
   if (!booking) return res.status(404).json({ message: 'Booking not found' });
 
@@ -311,6 +318,43 @@ const sendInvoiceEmail = catchAsync(async (req, res) => {
 
   doc.end();
 });
+const updateBookingStatus = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const { status, note = '' } = req.body;
+
+  if (!['confirmed', 'cancelled'].includes(status)) {
+    return res.status(400).json({ message: 'Invalid status' });
+  }
+
+  const booking = await Booking.findById(id);
+  if (!booking) {
+    return res.status(404).json({ message: 'Booking not found' });
+  }
+
+  // Record in history
+  booking.statusHistory.push({
+    status,
+    changedBy: req.user.id,
+    note: note || `${status === 'confirmed' ? 'Approved' : 'Rejected'} by admin`,
+  });
+
+  // Update current status
+  booking.status = status;
+
+  await booking.save();
+
+  await booking.populate([
+    { path: 'user', select: 'name email' },
+    { path: 'vehicle', select: 'make model licensePlate' },
+    { path: 'statusHistory.changedBy', select: 'name' }
+  ]);
+
+  res.json({
+    success: true,
+    message: `Booking ${status === 'confirmed' ? 'approved' : 'rejected'}`,
+    data: booking
+  });
+});
 
 
-module.exports = { createBooking, getMyBookings, getAllBookings, getBookingById, createBookingAdmin, updateBookingAdmin, deleteBookingAdmin, recordPayment, getPayments, sendInvoiceEmail  };
+module.exports = { createBooking, getMyBookings, getAllBookings, getBookingById, createBookingAdmin, updateBookingAdmin, deleteBookingAdmin, recordPayment, getPayments, sendInvoiceEmail, updateBookingStatus };

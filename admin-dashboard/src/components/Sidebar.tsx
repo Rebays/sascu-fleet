@@ -21,7 +21,7 @@ export default function Sidebar() {
   };
 
   return (
-    <div className="w-64 bg-slate-900 text-white flex flex-col">
+    <div className="w-64 bg-slate-900 text-white flex flex-col print:hidden">
       <div className="p-6 border-b border-slate-800">
         <h1 className="text-2xl font-bold">SASCU Fleet</h1>
         <p className="text-sm text-slate-400">Vehicle Rental System</p>

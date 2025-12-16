@@ -22,7 +22,8 @@ export function Button({
         size === 'sm' && "text-sm",
         size === 'lg' && "text-lg py-3",
         size === 'icon' && "p-2 rounded-full",
-        className
+        className,
+        'cursor-pointer'
       )}
       {...props}
     />

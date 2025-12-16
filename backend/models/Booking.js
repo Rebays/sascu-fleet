@@ -27,7 +27,26 @@ const bookingSchema = new mongoose.Schema({
     type: String,
     enum: ['pending', 'partial', 'paid', 'failed', 'refunded'],
     default: 'pending'
-}
+  },
+  statusHistory: [
+  {
+    status: {
+      type: String,
+      enum: ['pending', 'confirmed', 'cancelled'],
+      required: true
+    },
+    changedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    },
+    changedAt: {
+      type: Date,
+      default: Date.now
+    },
+    note: String // optional note, e.g. "Approved by John"
+  }
+],
 }, { timestamps: true });
 
 

@@ -51,8 +51,12 @@ export default function BookingActions({ booking, onPaymentRecorded }: BookingAc
     if (!res.ok) throw new Error();
 
     toast.success(`SBD${amount} recorded as ${method}!`);
-    mutate(`/bookings/admin/${booking._id}`); // refresh detail page
-    mutate('/bookings/admin/all');           // refresh list if open
+    // refresh booking detail and payments for this booking, and the list
+    mutate(`/bookings/${booking._id}`);
+    mutate(`/bookings/admin/${booking._id}/payments`);
+    mutate('/bookings/admin/all'); // refresh list if open
+    // notify parent to revalidate any keys it cares about
+    onPaymentRecorded?.();
     setPaymentOpen(false);
     setAmount('');
   } catch (err) {
@@ -92,18 +96,19 @@ export default function BookingActions({ booking, onPaymentRecorded }: BookingAc
     <>
       {/* Action Buttons */}
       <div className="flex gap-4 mt-8 print:hidden">
-        <Button onClick={() => setPaymentOpen(true)} className="flex-1">
+        <Button onClick={() => setPaymentOpen(true)} className="flex">
           <DollarSign className="w-5 h-5 mr-2" />
           Record Payment
         </Button>
-        <Button variant="outline" onClick={() => setInvoiceOpen(true)} className="flex-1">
+        <Button variant="outline" onClick={() => setInvoiceOpen(true)} className="flex">
           <Mail className="w-5 h-5 mr-2" />
           Send Invoice
         </Button>
-        <Button variant="outline" onClick={handlePrintInvoice}>
-          <Printer className="w-5 h-5 mr-2" />
-          Print Invoice
-        </Button>
+        <Button className="flex" variant="outline" onClick={() => window.print()}>
+                <Printer className="w-5 h-5 mr-2" />
+                Print Invoice
+              </Button>
+        
       </div>
 
       {/* Record Payment Modal */}
@@ -189,8 +194,8 @@ export default function BookingActions({ booking, onPaymentRecorded }: BookingAc
             </p>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setInvoiceOpen(false)}>Cancel</Button>
-            <Button  className="ml-2" onClick={handleSendInvoice} disabled={sendingEmail}>
+            <Button className="flex" variant="outline" onClick={() => setInvoiceOpen(false)}>Cancel</Button>
+            <Button  className="ml-2 flex" onClick={handleSendInvoice} disabled={sendingEmail}>
               {sendingEmail ? (
                 <>
                   <Loader2 className="w-5 h-5 mr-2 animate-spin flex" />

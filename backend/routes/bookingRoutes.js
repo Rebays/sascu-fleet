@@ -9,7 +9,8 @@ const {
     deleteBookingAdmin,
     recordPayment,
     getPayments,
-    sendInvoiceEmail
+    sendInvoiceEmail,
+    updateBookingStatus
 } = require('../controllers/bookingController');
 const { protect } = require('../middleware/auth');
 const admin = require('../middleware/admin');
@@ -29,5 +30,7 @@ router.delete('/admin/:id', protect, admin, deleteBookingAdmin);
 router.post('/admin/:id/payments', protect, admin, recordPayment);
 router.get('/admin/:id/payments', protect, admin, getPayments);
 router.post('/admin/:id/send-invoice', protect, admin, sendInvoiceEmail);
+
+router.patch('/admin/:id/status', protect, admin, updateBookingStatus);
 
 module.exports = router;

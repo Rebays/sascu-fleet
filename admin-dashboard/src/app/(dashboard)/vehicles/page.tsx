@@ -117,13 +117,16 @@ export default function VehiclesPage() {
       images: images.length > 0 ? images : undefined
     };
 
+    console.log('Submitting vehicle:');
+    console.log(payload);
+
     try {
       const url = editingVehicle 
       ? `${process.env.NEXT_PUBLIC_API_URL}/vehicles/${editingVehicle._id}`
       : `${process.env.NEXT_PUBLIC_API_URL}/vehicles/`;
 
       const method = editingVehicle ? 'PUT' : 'POST';
-
+      console.log(`Making ${method} request to ${url}`);
       const res = await fetch(url, {
         method,
         headers: {
@@ -218,7 +221,7 @@ export default function VehiclesPage() {
                 <h3 className="text-xl font-bold mb-2">{v.make} {v.model} ({v.year})</h3>
                 <p className="text-gray-600 mb-4">License: <strong>{v.licensePlate}</strong></p>
                 <div className="text-sm space-y-1">
-                  <p>Rate: <strong>R{v.pricePerHour}/hr • R{v.pricePerDay}/day</strong></p>
+                  <p>Rate: <strong>SBD{v.pricePerHour}/hr • SBD{v.pricePerDay}/day</strong></p>
                   <p>Status: <Badge variant={v.isAvailable ? 'default' : 'destructive'}>
                     {v.isAvailable ? 'Available' : 'Booked'}
                   </Badge></p>
@@ -264,7 +267,7 @@ export default function VehiclesPage() {
                     </td>
                     <td className="p-4">{v.make} {v.model} ({v.year})</td>
                     <td className="p-4">{v.licensePlate}</td>
-                    <td className="p-4">R{v.pricePerHour}/hr • R{v.pricePerDay}/day</td>
+                    <td className="p-4">SBD{v.pricePerHour}/hr • SBD{v.pricePerDay}/day</td>
                     <td className="p-4">
                       <Badge variant={v.isAvailable ? 'default' : 'destructive'}>
                         {v.isAvailable ? 'Available' : 'Booked'}
@@ -294,7 +297,7 @@ export default function VehiclesPage() {
           </DialogHeader>
 
           <div className="mb-6">
-            <Label>Vehicle Photos (up to 6)</Label>
+            <Label>Vehicle Photos (up to 2)</Label>
             <div className="grid grid-cols-3 gap-4 mt-4">
               {images.map((src, i) => (
                 <div key={i} className="relative group">
@@ -307,7 +310,7 @@ export default function VehiclesPage() {
                   </button>
                 </div>
               ))}
-              {images.length < 6 && (
+              {images.length < 2 && (
                 <label className="border-2 border-dashed border-gray-300 rounded-lg h-48 flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 transition">
                   <Upload className="w-10 h-10 text-gray-400" />
                   <span className="mt-2 text-sm text-gray-600">Add Photos</span>
@@ -341,8 +344,8 @@ export default function VehiclesPage() {
             </div>
             <div><Label>License Plate</Label><Input value={form.licensePlate} onChange={e => setForm({ ...form, licensePlate: e.target.value })} /></div>
             <div><Label>Location</Label><Input value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} /></div>
-            <div><Label>Price per Hour (R)</Label><Input type="number" value={form.pricePerHour} onChange={e => setForm({ ...form, pricePerHour: e.target.value })} /></div>
-            <div><Label>Price per Day (R)</Label><Input type="number" value={form.pricePerDay} onChange={e => setForm({ ...form, pricePerDay: e.target.value })} /></div>
+            <div><Label>Price per Hour (SBD)</Label><Input type="number" value={form.pricePerHour} onChange={e => setForm({ ...form, pricePerHour: e.target.value })} /></div>
+            <div><Label>Price per Day (SBD)</Label><Input type="number" value={form.pricePerDay} onChange={e => setForm({ ...form, pricePerDay: e.target.value })} /></div>
           </div>
 
           <div className="flex justify-end gap-3 mt-6">
