@@ -19,7 +19,6 @@ export interface Vehicle {
   pricePerHour: number;
   pricePerDay: number;
   location: string;
-  isAvailable: boolean;
   image?: string;
   images?: string[]; // Backend returns images array
   createdAt: string;

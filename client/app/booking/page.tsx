@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useState, useEffect } from "react";
-import { getVehicleById, createGuestBooking, type GuestBookingData } from "@/lib/api";
+import {
+  getVehicleById,
+  createBooking,
+  type GuestBookingData,
+} from "@/lib/api";
 import { formatCurrency, calculateDays } from "@/lib/utils";
 import { VEHICLE_TYPE_DISPLAY } from "@/lib/constants";
 import type { VehicleDisplay } from "@/lib/types";
@@ -67,9 +71,11 @@ export default function BookingPage() {
     };
 
     try {
-      const response = await createGuestBooking(bookingData);
+      const response = await createBooking(bookingData);
       // Redirect to confirmation page with booking reference
-      router.push(`/booking/confirmation?trackingNumber=${response.data.bookingRef}`);
+      router.push(
+        `/booking/confirmation?trackingNumber=${response.data.bookingRef}`
+      );
     } catch (err: any) {
       setError(err.message || "Failed to create booking. Please try again.");
       setSubmitting(false);
@@ -113,7 +119,8 @@ export default function BookingPage() {
         <div className="border p-4 mb-6">
           <h3 className="text-xl font-bold mb-3">Booking Summary</h3>
           <p className="mb-1">
-            <strong>Vehicle:</strong> {vehicle.displayName} ({VEHICLE_TYPE_DISPLAY[vehicle.type]})
+            <strong>Vehicle:</strong> {vehicle.displayName} (
+            {VEHICLE_TYPE_DISPLAY[vehicle.type]})
           </p>
           <p className="mb-1">
             <strong>Year:</strong> {vehicle.year}
@@ -131,7 +138,8 @@ export default function BookingPage() {
             <strong>Duration:</strong> {days} day{days !== 1 ? "s" : ""}
           </p>
           <p className="font-bold text-lg">
-            <strong>Total Cost:</strong> {formatCurrency(vehicle.pricePerDay * days)}
+            <strong>Total Cost:</strong>{" "}
+            {formatCurrency(vehicle.pricePerDay * days)}
           </p>
         </div>
       )}
@@ -203,7 +211,10 @@ export default function BookingPage() {
             </div>
 
             <div className="mb-4">
-              <label htmlFor="licenseNumber" className="block mb-1 font-semibold">
+              <label
+                htmlFor="licenseNumber"
+                className="block mb-1 font-semibold"
+              >
                 Driver License Number:
               </label>
               <input
@@ -250,7 +261,10 @@ export default function BookingPage() {
             </div>
 
             <div className="mb-4">
-              <label htmlFor="pickupLocation" className="block mb-1 font-semibold">
+              <label
+                htmlFor="pickupLocation"
+                className="block mb-1 font-semibold"
+              >
                 Pickup Location:
               </label>
               <select
@@ -260,15 +274,15 @@ export default function BookingPage() {
                 required
               >
                 <option value="">Select a location</option>
-                <option value="main">Main Office - Downtown</option>
-                <option value="airport">Airport Branch</option>
-                <option value="north">North Side Location</option>
-                <option value="south">South Side Location</option>
+                <option value="headoffice">Henderson</option>
               </select>
             </div>
 
             <div className="mb-4">
-              <label htmlFor="additionalNotes" className="block mb-1 font-semibold">
+              <label
+                htmlFor="additionalNotes"
+                className="block mb-1 font-semibold"
+              >
                 Additional Notes:
               </label>
               <textarea

@@ -9,7 +9,6 @@ const vehicleSchema = new mongoose.Schema({
   pricePerHour: { type: Number, required: true },
   pricePerDay: { type: Number, required: true },
   location: { type: String, required: true },
-  isAvailable: { type: Boolean, default: true },
   images: [String]
 }, { timestamps: true });
 

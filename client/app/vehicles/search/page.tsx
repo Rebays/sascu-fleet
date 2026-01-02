@@ -127,15 +127,6 @@ export default function VehicleSearchPage() {
                     {days !== 1 ? "s" : ""})
                   </p>
                 )}
-                <div className="mb-3">
-                  <span className={`inline-block px-3 py-1 text-sm font-semibold ${
-                    vehicle.isAvailable
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-red-100 text-red-800'
-                  }`}>
-                    {vehicle.isAvailable ? 'Available' : 'Currently Unavailable'}
-                  </span>
-                </div>
                 <Link
                   href={`/vehicles/${vehicle._id}${
                     startDate && endDate ? `?startDate=${startDate}&endDate=${endDate}` : ''

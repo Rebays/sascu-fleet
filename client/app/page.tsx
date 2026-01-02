@@ -113,12 +113,6 @@ export default function Home() {
             </p>
           </li>
           <li className="border p-4">
-            <Link href="/booking" className="text-xl font-semibold underline">
-              Book a Vehicle
-            </Link>
-            <p className="mt-1">Make a new reservation</p>
-          </li>
-          <li className="border p-4">
             <Link
               href="/track-booking"
               className="text-xl font-semibold underline"

@@ -1,40 +1,41 @@
-const express = require('express');
-const { 
-    createBooking, 
-    getMyBookings, 
-    getAllBookings,
-    getBookingById,
-    createBookingAdmin,
-    updateBookingAdmin,
-    deleteBookingAdmin,
-    recordPayment,
-    getPayments,
-    sendInvoiceEmail,
-    updateBookingStatus,
-    getBookingByRef
-} = require('../controllers/bookingController');
-const { protect } = require('../middleware/auth');
-const admin = require('../middleware/admin');
+const express = require("express");
+const {
+  createBooking,
+  getMyBookings,
+  getAllBookings,
+  getBookingById,
+  createBookingAdmin,
+  updateBookingAdmin,
+  deleteBookingAdmin,
+  recordPayment,
+  getPayments,
+  sendInvoiceEmail,
+  updateBookingStatus,
+  getBookingByRef,
+} = require("../controllers/bookingController");
+const { protect } = require("../middleware/auth");
+const admin = require("../middleware/admin");
 
 const router = express.Router();
 
-router.get('/ref/:ref', getBookingByRef);
-router.get('/:id', getBookingById);
+// Public routes
+router.post("/", createBooking);
+router.get("/track/:ref", getBookingByRef);
+router.get("/:id", getBookingById);
 
 router.use(protect);
-router.post('/', createBooking);
-router.get('/my', getMyBookings);
+router.get("/my", getMyBookings);
 
 //Admin Only -  get all bookings
-router.get('/admin/all', protect, admin, getAllBookings);
-router.post('/admin', protect, admin, createBookingAdmin);          
-router.put('/admin/:id', protect, admin, updateBookingAdmin);       
-router.delete('/admin/:id', protect, admin, deleteBookingAdmin);    
+router.get("/admin/all", protect, admin, getAllBookings);
+router.post("/admin", protect, admin, createBookingAdmin);
+router.put("/admin/:id", protect, admin, updateBookingAdmin);
+router.delete("/admin/:id", protect, admin, deleteBookingAdmin);
 
-router.post('/admin/:id/payments', protect, admin, recordPayment);
-router.get('/admin/:id/payments', protect, admin, getPayments);
-router.post('/admin/:id/send-invoice', protect, admin, sendInvoiceEmail);
+router.post("/admin/:id/payments", protect, admin, recordPayment);
+router.get("/admin/:id/payments", protect, admin, getPayments);
+router.post("/admin/:id/send-invoice", protect, admin, sendInvoiceEmail);
 
-router.patch('/admin/:id/status', protect, admin, updateBookingStatus);
+router.patch("/admin/:id/status", protect, admin, updateBookingStatus);
 
 module.exports = router;

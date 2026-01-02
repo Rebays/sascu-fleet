@@ -114,40 +114,53 @@ export async function getVehiclesByType(type?: string): Promise<VehicleDisplay[]
 }
 
 /**
- * Search vehicles (client-side filtering for now)
- * TODO: Replace with backend endpoint when available
- * Backend needs: GET /api/vehicles/search?startDate=...&endDate=...&type=...
+ * Search vehicles by date range and type
+ * Maps to: GET /api/vehicles/search?startDate=...&endDate=...&type=...
  */
 export interface VehicleSearchParams {
   startDate?: string;
   endDate?: string;
   type?: string;
-  location?: string;
 }
 
 export async function searchVehicles(params: VehicleSearchParams): Promise<VehicleDisplay[]> {
-  // For now, fetch all vehicles and filter client-side
-  // In production, this should be a backend endpoint that checks actual availability
-  const vehicles = await getVehicles();
+  try {
+    // Build query parameters
+    const queryParams = new URLSearchParams();
+    if (params.startDate) queryParams.set('startDate', params.startDate);
+    if (params.endDate) queryParams.set('endDate', params.endDate);
+    if (params.type) queryParams.set('type', params.type);
 
-  let filtered = vehicles;
+    // Call backend search endpoint that filters by availability
+    const response = await fetch(`${API_URL}/vehicles/search?${queryParams.toString()}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
 
-  // Filter by type if specified
-  if (params.type) {
-    filtered = filtered.filter(v => v.type === params.type);
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new ApiError(
+        error.message || 'Failed to search vehicles',
+        response.status,
+        error
+      );
+    }
+
+    const result = await response.json();
+    const vehicles: Vehicle[] = result.data || result;
+    return vehicles.map(transformVehicle);
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    throw new ApiError(
+      'Network error: Unable to connect to the server. Please check your connection.',
+      undefined,
+      error
+    );
   }
-
-  // Filter by location if specified
-  if (params.location) {
-    filtered = filtered.filter(v => v.location === params.location);
-  }
-
-  // TODO: Filter by date range
-  // This requires backend support to check against existing bookings
-  // For now, we just return vehicles marked as available
-  filtered = filtered.filter(v => v.isAvailable);
-
-  return filtered;
 }
 
 /**
@@ -216,6 +229,32 @@ export interface BookingResponse {
   };
 }
 
+// Backend booking response structure
+interface BackendBookingData {
+  bookingRef: string;
+  status: string;
+  paymentStatus: string;
+  user: {
+    name: string;
+    email: string;
+    phone: string;
+  };
+  vehicle: {
+    make: string;
+    model: string;
+    year: number;
+    licensePlate: string;
+    location: string;
+  };
+  startDate: string;
+  endDate: string;
+  createdAt: string;
+  totalPrice: number;
+  deposit: number;
+  balance: number;
+}
+
+// Client-friendly tracking response
 export interface TrackingResponse {
   success: boolean;
   data: {
@@ -249,10 +288,10 @@ export interface TrackingResponse {
 }
 
 /**
- * Create a guest booking (no authentication required)
+ * Create a booking (no authentication required)
  * Maps to: POST /api/bookings
  */
-export async function createGuestBooking(
+export async function createBooking(
   bookingData: GuestBookingData
 ): Promise<BookingResponse> {
   try {
@@ -308,6 +347,92 @@ export async function trackBooking(bookingRef: string): Promise<TrackingResponse
       );
     }
 
+    const backendResponse: { success: boolean; data: BackendBookingData } = await response.json();
+
+    // Transform backend response to client-friendly format
+    return {
+      success: backendResponse.success,
+      data: {
+        bookingRef: backendResponse.data.bookingRef,
+        status: backendResponse.data.status,
+        paymentStatus: backendResponse.data.paymentStatus,
+        vehicle: {
+          make: backendResponse.data.vehicle.make,
+          model: backendResponse.data.vehicle.model,
+          year: backendResponse.data.vehicle.year,
+          licensePlate: backendResponse.data.vehicle.licensePlate,
+          location: backendResponse.data.vehicle.location,
+        },
+        customer: {
+          name: backendResponse.data.user.name,
+          email: backendResponse.data.user.email,
+          phone: backendResponse.data.user.phone,
+        },
+        dates: {
+          startDate: backendResponse.data.startDate,
+          endDate: backendResponse.data.endDate,
+          createdAt: backendResponse.data.createdAt,
+        },
+        pricing: {
+          totalPrice: backendResponse.data.totalPrice,
+          deposit: backendResponse.data.deposit,
+          balance: backendResponse.data.balance,
+        },
+      },
+    };
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    throw new ApiError(
+      'Network error: Unable to connect to the server. Please check your connection.',
+      undefined,
+      error
+    );
+  }
+}
+
+/**
+ * Get booked dates for a vehicle
+ * Maps to: GET /api/vehicles/:id/booked-dates
+ */
+export interface BookedDate {
+  startDate: string;
+  endDate: string;
+  status: string;
+  bookingRef: string;
+}
+
+export interface BookedDatesResponse {
+  success: boolean;
+  data: {
+    vehicleId: string;
+    dateRange: {
+      from: string;
+      to: string;
+    };
+    bookedDates: BookedDate[];
+  };
+}
+
+export async function getBookedDates(vehicleId: string): Promise<BookedDatesResponse> {
+  try {
+    const response = await fetch(`${API_URL}/vehicles/${vehicleId}/booked-dates`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new ApiError(
+        error.message || 'Failed to fetch booked dates',
+        response.status,
+        error
+      );
+    }
+
     return await response.json();
   } catch (error) {
     if (error instanceof ApiError) {
@@ -319,6 +444,30 @@ export async function trackBooking(bookingRef: string): Promise<TrackingResponse
       error
     );
   }
+}
+
+/**
+ * Check if a date range conflicts with booked dates
+ */
+export function checkDateConflict(
+  startDate: string,
+  endDate: string,
+  bookedDates: BookedDate[]
+): BookedDate | null {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+
+  for (const booking of bookedDates) {
+    const bookingStart = new Date(booking.startDate);
+    const bookingEnd = new Date(booking.endDate);
+
+    // Check if dates overlap
+    if (start < bookingEnd && end > bookingStart) {
+      return booking; // Return the conflicting booking
+    }
+  }
+
+  return null; // No conflict
 }
 
 /**
