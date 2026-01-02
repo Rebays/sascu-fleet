@@ -123,6 +123,27 @@ const createBookingAdmin = catchAsync(async (req, res) => {
     });
   }
 
+  // Create an invoice for admin-created booking (same behavior as public booking creation)
+  try {
+    const invoice = await Invoice.create({
+      booking: booking._id,
+      bookingRef: booking.bookingRef,
+      totalAmount: booking.totalPrice,
+      dueDate: new Date(booking.startDate) || new Date(), // due on pickup day (fallback to now)
+      paidAmount: 0
+    });
+
+    booking.invoice = invoice._id;
+    await booking.save();
+
+    // Mark vehicle as unavailable
+    await Vehicle.findByIdAndUpdate(booking.vehicle, { isAvailable: false });
+
+  } catch (err) {
+    // If invoice creation fails, log and continue — booking was created
+    console.error('Failed to create invoice for admin booking:', err);
+  }
+
   await booking.populate('user vehicle');
   res.status(201).json({ success: true, data: booking });
 });

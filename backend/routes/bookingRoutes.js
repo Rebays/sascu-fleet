@@ -17,10 +17,12 @@ const admin = require('../middleware/admin');
 
 const router = express.Router();
 
+router.get('/:id', getBookingById);
+
 router.use(protect);
 router.post('/', createBooking);
 router.get('/my', getMyBookings);
-router.get('/:id', getBookingById);
+
 //Admin Only -  get all bookings
 router.get('/admin/all', protect, admin, getAllBookings);
 router.post('/admin', protect, admin, createBookingAdmin);          
