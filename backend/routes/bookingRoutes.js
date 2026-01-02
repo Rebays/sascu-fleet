@@ -10,13 +10,15 @@ const {
     recordPayment,
     getPayments,
     sendInvoiceEmail,
-    updateBookingStatus
+    updateBookingStatus,
+    getBookingByRef
 } = require('../controllers/bookingController');
 const { protect } = require('../middleware/auth');
 const admin = require('../middleware/admin');
 
 const router = express.Router();
 
+router.get('/ref/:ref', getBookingByRef);
 router.get('/:id', getBookingById);
 
 router.use(protect);

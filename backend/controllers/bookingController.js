@@ -103,6 +103,16 @@ const getBookingById = catchAsync(async (req, res) => {
   res.json({ success: true, data: booking });
 });
 
+const getBookingByRef = catchAsync(async (req, res) => {
+  const booking = await Booking.findOne({ bookingRef: req.params.ref })
+    .populate('user', 'name email')
+    .populate('vehicle', 'make model licensePlate images pricePerDay pricePerHour');
+
+  if (!booking) return res.status(404).json({ message: 'Booking not found' });
+
+  res.json({ success: true, data: booking });
+});
+
 const createBookingAdmin = catchAsync(async (req, res) => {
   const booking = await Booking.create(req.body);
   const { vehicle, startDate, endDate } = req.body;
@@ -378,4 +388,4 @@ const updateBookingStatus = catchAsync(async (req, res) => {
 });
 
 
-module.exports = { createBooking, getMyBookings, getAllBookings, getBookingById, createBookingAdmin, updateBookingAdmin, deleteBookingAdmin, recordPayment, getPayments, sendInvoiceEmail, updateBookingStatus };
+module.exports = { createBooking, getMyBookings, getAllBookings, getBookingById, getBookingByRef, createBookingAdmin, updateBookingAdmin, deleteBookingAdmin, recordPayment, getPayments, sendInvoiceEmail, updateBookingStatus };
