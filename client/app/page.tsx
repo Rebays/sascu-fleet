@@ -33,9 +33,9 @@ export default function Home() {
   };
 
   return (
-    <div>
+    <div className="-mt-[88px]">
       {/* Hero Section with Search Overlay */}
-      <section className="relative h-[66vh] min-h-[500px] flex items-center">
+      <section className="relative h-[calc(66vh+88px)] min-h-[588px] flex items-center pt-24">
         {/* Background Image with Overlay */}
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
@@ -61,12 +61,12 @@ export default function Home() {
             </div>
 
             {/* Search Widget - Right Side */}
-            <div className="max-w-xl lg:ml-auto">
+            <div className="w-full lg:w-[420px] lg:ml-auto">
               <div className="bg-card/95 backdrop-blur border rounded-lg shadow-2xl p-6 md:p-8">
                 <div className="flex items-center gap-2 mb-6">
                   <Search className="h-5 w-5 text-primary" />
                   <h2 className="text-2xl font-bold">
-                    Search Available Vehicles
+                    Find Your Ride
                   </h2>
                 </div>
 

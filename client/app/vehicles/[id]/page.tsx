@@ -7,6 +7,7 @@ import { getVehicleById, calculateBookingPrice, getBookedDates, checkDateConflic
 import { VEHICLE_TYPE_DISPLAY } from "@/lib/constants";
 import { formatCurrency } from "@/lib/utils";
 import type { VehicleDisplay } from "@/lib/types";
+import Breadcrumb from "@/components/Breadcrumb";
 import {
   Car,
   Bike,
@@ -17,7 +18,6 @@ import {
   CheckCircle,
   XCircle,
   Info,
-  ArrowLeft,
   Loader2,
 } from "lucide-react";
 
@@ -54,6 +54,11 @@ export default function VehicleDetailsPage({
 
   const [startDate, setStartDate] = useState(startDateFromUrl || "");
   const [endDate, setEndDate] = useState(endDateFromUrl || "");
+
+  // Scroll to top on mount
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   useEffect(() => {
     async function fetchVehicleData() {
@@ -168,7 +173,6 @@ export default function VehicleDetailsPage({
               href="/vehicles"
               className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
             >
-              <ArrowLeft className="h-4 w-4" />
               Back to Vehicles
             </Link>
           </div>
@@ -185,39 +189,23 @@ export default function VehicleDetailsPage({
     <div>
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-muted/60 via-muted/40 to-background border-b">
-        <div className="container mx-auto px-4 md:px-8 py-8">
-          {/* Breadcrumb */}
-          <nav className="mb-6">
-            <Link
-              href="/vehicles"
-              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Vehicles
-            </Link>
-          </nav>
-
-          {/* Vehicle Header */}
-          <div className="flex items-start gap-6">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 flex-shrink-0">
+        <div className="container mx-auto px-4 md:px-8 py-16">
+          <div className="text-center">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
               <VehicleIcon type={vehicle.type} />
+              {VEHICLE_TYPE_DISPLAY[vehicle.type] || vehicle.type}
             </div>
-            <div className="flex-1">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-3">
-                {VEHICLE_TYPE_DISPLAY[vehicle.type] || vehicle.type}
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
+              {vehicle.displayName}
+            </h1>
+            <div className="flex flex-wrap items-center justify-center gap-4 text-muted-foreground">
+              <div className="flex items-center gap-1.5">
+                <Calendar className="h-4 w-4" />
+                <span className="text-sm">{vehicle.year}</span>
               </div>
-              <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">
-                {vehicle.displayName}
-              </h1>
-              <div className="flex flex-wrap items-center gap-4 text-muted-foreground">
-                <div className="flex items-center gap-1.5">
-                  <Calendar className="h-4 w-4" />
-                  <span className="text-sm">{vehicle.year}</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <MapPin className="h-4 w-4" />
-                  <span className="text-sm">{vehicle.location}</span>
-                </div>
+              <div className="flex items-center gap-1.5">
+                <MapPin className="h-4 w-4" />
+                <span className="text-sm">{vehicle.location}</span>
               </div>
             </div>
           </div>
@@ -225,7 +213,16 @@ export default function VehicleDetailsPage({
       </section>
 
       {/* Main Content */}
-      <section className="container mx-auto px-4 md:px-8 py-12">
+      <div className="container mx-auto px-4 md:px-8 py-12">
+        {/* Breadcrumb */}
+        <div className="mb-8">
+          <Breadcrumb
+            items={[
+              { label: "Vehicles", href: "/vehicles" },
+              { label: vehicle.displayName }
+            ]}
+          />
+        </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Vehicle Details */}
           <div className="lg:col-span-2 space-y-6">
@@ -291,11 +288,54 @@ export default function VehicleDetailsPage({
                 </ul>
               </div>
             )}
+
+            {/* Rental Terms & Policies */}
+            <div className="bg-card border rounded-lg p-6">
+              <h2 className="text-2xl font-bold mb-4">Rental Terms & Policies</h2>
+              <div className="space-y-4 text-sm">
+                <div>
+                  <h3 className="font-semibold mb-2 flex items-center gap-2">
+                    <Info className="h-4 w-4 text-primary" />
+                    Driver Requirements
+                  </h3>
+                  <p className="text-muted-foreground">
+                    Valid driver's license required. Minimum age: 21 years. Additional fees may apply for drivers under 25.
+                  </p>
+                </div>
+                <div>
+                  <h3 className="font-semibold mb-2 flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-primary" />
+                    Insurance Coverage
+                  </h3>
+                  <p className="text-muted-foreground">
+                    Basic insurance included. Optional comprehensive coverage available at checkout.
+                  </p>
+                </div>
+                <div>
+                  <h3 className="font-semibold mb-2 flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4 text-primary" />
+                    Cancellation Policy
+                  </h3>
+                  <p className="text-muted-foreground">
+                    Free cancellation up to 24 hours before pickup. Cancellations within 24 hours subject to 50% fee.
+                  </p>
+                </div>
+                <div>
+                  <h3 className="font-semibold mb-2 flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-primary" />
+                    Pickup & Return
+                  </h3>
+                  <p className="text-muted-foreground">
+                    Vehicle must be picked up and returned to the same location. Late returns subject to additional daily rate.
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Right Column - Booking Widget */}
           <div className="lg:col-span-1">
-            <div className="bg-card border rounded-lg p-6 lg:sticky lg:top-4">
+            <div className="bg-card border rounded-lg p-6 lg:sticky lg:top-24">
               <h3 className="text-2xl font-bold mb-6">Book This Vehicle</h3>
 
               {/* Show booked dates information */}
@@ -435,7 +475,7 @@ export default function VehicleDetailsPage({
             </div>
           </div>
         </div>
-      </section>
+      </div>
     </div>
   );
 }

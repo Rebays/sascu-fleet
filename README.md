@@ -1,4 +1,5 @@
-# SASCU Fleet Rental System API
+# SASCU Rental System API
+
 **Full-Stack Ready • Production-Grade • Enterprise Features**
 
 A modern, scalable **vehicle rental/booking backend** built with Node.js, Express, MongoDB, for Solomon Airlines Credit Union Fleet.
@@ -7,6 +8,7 @@ Live Demo: Coming soon
 Frontend Repo: Coming soon (NExtJs + Tailwind)
 
 ## Features
+
 - User registration & JWT authentication
 - Vehicle browsing & real-time availability
 - Smart booking with conflict detection
@@ -23,18 +25,19 @@ Frontend Repo: Coming soon (NExtJs + Tailwind)
 - Clean, fully documented REST API
 
 ## Tech Stack
-| Layer            | Technology                     |
-|------------------|--------------------------------|
-| Backend          | Node.js, Express               |
-| Database         | MongoDB (Mongoose)             |
-| Auth             | JWT + bcrypt                   |
-| Payments         | Simulation                     |
-| PDF Generation   | Puppeteer                      |
-| Email            | Nodemailer                     |
-| Error Handling   | Global handler + catchAsync    |
 
+| Layer          | Technology                  |
+| -------------- | --------------------------- |
+| Backend        | Node.js, Express            |
+| Database       | MongoDB (Mongoose)          |
+| Auth           | JWT + bcrypt                |
+| Payments       | Simulation                  |
+| PDF Generation | Puppeteer                   |
+| Email          | Nodemailer                  |
+| Error Handling | Global handler + catchAsync |
 
 ## Quick Start (Local)
+
 ```bash
 # 1. Clone repo
 git clone https://github.com/yourusername/vehicle-booking-api.git
@@ -56,6 +59,7 @@ Server runs at: http://localhost:5000
 ```
 
 ## Server
+
 ```bash
 PORT=5000
 NODE_ENV=development
@@ -69,13 +73,16 @@ JWT_SECRET=your_very_long_random_string_here_128_chars_minimum
 ```
 
 ## Email (Nodemailer) - for sending invoices
+
 ```bash
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=yourcompany@gmail.com
 SMTP_PASS=your_app_password_here
 ```
+
 ## Company Branding (appears on invoices)
+
 ```bash
 COMPANY_NAME=Speedy Vehicle Rentals
 COMPANY_ADDRESS=123 Airport Road, New York, NY 10001, USA
@@ -83,15 +90,18 @@ COMPANY_EMAIL=info@speedyrentals.com
 COMPANY_PHONE=+1 (555) 123-4567
 ```
 
-## Frontend URL 
+## Frontend URL
+
 ```bash
 FRONTEND_URL=http://localhost:3000
 ```
 
 ## API Documentation
+
 ```bash
 Full endpoint list in API_DOCS.md (updated Dec 2025)
 ```
+
 ## Key Endpoints:
 
 ```bash
@@ -108,6 +118,7 @@ POST   /api/admin/invoices/:id/email
 ```
 
 ## Scripts
+
 ```bash
 Bashnpm run dev     # Development with nodemon
 npm start       # Production
@@ -115,6 +126,7 @@ npm run lint    # ESLint (optional)
 ```
 
 ## Project Structure
+
 ```bash
 vehicle-booking-api/
 ├── .env                  # Environment variables (never commit real one)
@@ -170,12 +182,11 @@ vehicle-booking-api/
 └── sendInvoiceEmail.js   # Nodemailer helper
 
 ```
+
 License
 MIT License – free to use commercially or modify.
-
 
 Author
 Built with love by the Rebays Dudes
 Support: dev@rebays.com.sb
 Star this repo if you found it useful!
-

@@ -3,6 +3,7 @@ import { getVehicles } from "@/lib/api";
 import { VEHICLE_TYPE_DISPLAY } from "@/lib/constants";
 import { formatCurrency } from "@/lib/utils";
 import type { VehicleDisplay } from "@/lib/types";
+import Breadcrumb from "@/components/Breadcrumb";
 import { Car, Bike, Truck, MapPin, Calendar, ArrowRight, AlertCircle } from "lucide-react";
 
 // Map vehicle types to icons
@@ -48,11 +49,16 @@ export default async function VehiclesPage() {
 
       {/* Main Content */}
       <section className="container mx-auto px-4 md:px-8 py-12">
+        {/* Breadcrumb */}
+        <div className="mb-8">
+          <Breadcrumb items={[{ label: "Vehicles" }]} />
+        </div>
+
         {/* Info Banner */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8 flex items-start gap-3">
           <Calendar className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
           <div className="text-sm">
-            <p className="text-blue-900 mb-1">
+            <p className="text-blue-900">
               <strong>Tip:</strong> Use the{" "}
               <Link href="/" className="underline font-semibold">
                 search tool

@@ -2,14 +2,19 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import Breadcrumb from "@/components/Breadcrumb";
 import {
   CheckCircle,
   Info,
-  HelpCircle,
   Mail,
   Phone,
   Clock,
   ArrowRight,
+  FileText,
+  CreditCard,
+  Search,
+  Home,
+  Car,
 } from "lucide-react";
 
 export default function BookingConfirmationPage() {
@@ -18,15 +23,19 @@ export default function BookingConfirmationPage() {
 
   return (
     <div>
-      {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-muted/60 via-muted/40 to-background border-b">
+      {/* Hero Section - Success Style */}
+      <section className="relative bg-gradient-to-br from-green-50 via-green-50/50 to-background border-b border-green-200">
         <div className="container mx-auto px-4 md:px-8 py-16">
           <div className="text-center">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-100 border-4 border-green-200 mb-6">
+              <CheckCircle className="h-10 w-10 text-green-600" />
+            </div>
             <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
-              Booking Confirmation
+              Booking Confirmed!
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Your reservation has been submitted successfully
+              Thank you for choosing SASCU. Your reservation has been
+              successfully submitted.
             </p>
           </div>
         </div>
@@ -34,107 +43,215 @@ export default function BookingConfirmationPage() {
 
       {/* Main Content */}
       <section className="container mx-auto px-4 md:px-8 py-12">
-        {/* Success Message */}
-        <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-8 flex items-start gap-3">
-          <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
-          <div>
-            <h2 className="text-xl font-bold text-green-900 mb-2">
-              Thank You for Your Booking!
-            </h2>
-            <p className="text-green-800">
-              Your vehicle rental has been successfully submitted.
-            </p>
+        <div className="max-w-3xl mx-auto">
+          {/* Breadcrumb */}
+          <div className="mb-8">
+            <Breadcrumb
+              items={[
+                { label: "Vehicles", href: "/vehicles" },
+                { label: "Complete Booking", href: "/booking" },
+                { label: "Confirmation" },
+              ]}
+            />
           </div>
-        </div>
 
-        {/* Tracking Number */}
-        {trackingNumber && (
-          <div className="bg-card border rounded-lg p-6 mb-8">
-            <div className="flex items-center gap-2 mb-4">
-              <Info className="h-5 w-5 text-primary" />
-              <h3 className="text-xl font-bold">Your Tracking Number</h3>
+          {/* Tracking Number - Prominent Display */}
+          {trackingNumber && (
+            <div className="bg-gradient-to-br from-primary/10 to-primary/5 border-2 border-primary/20 rounded-lg p-8 mb-8 text-center">
+              <div className="flex items-center justify-center gap-2 mb-3">
+                <FileText className="h-6 w-6 text-primary" />
+                <h3 className="text-xl font-bold">Your Booking Reference</h3>
+              </div>
+              <div className="bg-background border border-primary/30 rounded-lg p-4 mb-4 inline-block">
+                <p className="text-3xl md:text-4xl font-mono font-bold text-primary tracking-wider">
+                  {trackingNumber}
+                </p>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Save this reference number to track your booking and manage your
+                reservation
+              </p>
             </div>
-            <p className="text-2xl font-mono font-semibold mb-2">
-              {trackingNumber}
+          )}
+
+          {/* What Happens Next - Timeline Style */}
+          <div className="bg-card border rounded-lg p-8 mb-8">
+            <div className="flex items-center gap-2 mb-6">
+              <Info className="h-6 w-6 text-primary" />
+              <h3 className="text-2xl font-bold">What Happens Next?</h3>
+            </div>
+            <div className="space-y-4">
+              <div className="flex gap-4">
+                <div className="flex flex-col items-center">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 border-2 border-primary flex items-center justify-center flex-shrink-0">
+                    <span className="text-sm font-bold text-primary">1</span>
+                  </div>
+                  <div className="w-0.5 h-full bg-primary/20 mt-2"></div>
+                </div>
+                <div className="pb-6">
+                  <h4 className="font-semibold mb-1 flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-primary" />
+                    Confirmation Email
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    You&apos;ll receive a confirmation email with all booking
+                    details within minutes
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <div className="flex flex-col items-center">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 border-2 border-primary flex items-center justify-center flex-shrink-0">
+                    <span className="text-sm font-bold text-primary">2</span>
+                  </div>
+                  <div className="w-0.5 h-full bg-primary/20 mt-2"></div>
+                </div>
+                <div className="pb-6">
+                  <h4 className="font-semibold mb-1 flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-primary" />
+                    Booking Review
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    Our team will review and verify your reservation details
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <div className="flex flex-col items-center">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 border-2 border-primary flex items-center justify-center flex-shrink-0">
+                    <span className="text-sm font-bold text-primary">3</span>
+                  </div>
+                  <div className="w-0.5 h-full bg-primary/20 mt-2"></div>
+                </div>
+                <div className="pb-6">
+                  <h4 className="font-semibold mb-1 flex items-center gap-2">
+                    <CreditCard className="h-4 w-4 text-primary" />
+                    Payment Link
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    You&apos;ll receive a secure payment link to complete your
+                    reservation
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <div className="flex flex-col items-center">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 border-2 border-primary flex items-center justify-center flex-shrink-0">
+                    <span className="text-sm font-bold text-primary">4</span>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-1 flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-primary" />
+                    Rental Agreement
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    Once payment is confirmed, you&apos;ll receive your rental
+                    agreement
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Contact Information */}
+          <div className="bg-card border rounded-lg p-8 mb-8">
+            <div className="flex items-center gap-2 mb-6">
+              <Phone className="h-6 w-6 text-primary" />
+              <h3 className="text-2xl font-bold">Need Assistance?</h3>
+            </div>
+            <p className="text-muted-foreground mb-6">
+              Our team is here to help with any questions about your booking
             </p>
-            <p className="text-muted-foreground text-sm">
-              Please save this tracking number. You can use it to track your
-              booking status.
-            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="flex items-start gap-3 p-4 bg-muted/20 rounded-lg border">
+                <Mail className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold text-sm mb-1">Email</p>
+                  <p className="text-sm text-muted-foreground">
+                    bookings@sascufleet.com
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 p-4 bg-muted/20 rounded-lg border">
+                <Phone className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold text-sm mb-1">Phone</p>
+                  <p className="text-sm text-muted-foreground">
+                    (555) 123-4567
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 p-4 bg-muted/20 rounded-lg border">
+                <Clock className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold text-sm mb-1">Hours</p>
+                  <p className="text-sm text-muted-foreground">
+                    Mon-Fri, 8AM - 6PM
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
-        )}
 
-        {/* What Happens Next */}
-        <div className="bg-card border rounded-lg p-6 mb-8">
-          <div className="flex items-center gap-2 mb-4">
-            <Info className="h-5 w-5 text-primary" />
-            <h3 className="text-xl font-bold">What Happens Next?</h3>
+          {/* Quick Actions */}
+          <div className="bg-gradient-to-br from-muted/40 via-muted/20 to-background border rounded-lg p-8">
+            <h3 className="text-xl font-bold mb-6 text-center">
+              What would you like to do next?
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Link
+                href="/track-booking"
+                className="group flex flex-col items-center gap-3 p-6 bg-card border rounded-lg transition-all hover:shadow-md hover:border-primary/50"
+              >
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                  <Search className="h-6 w-6 text-primary" />
+                </div>
+                <div className="text-center">
+                  <h4 className="font-semibold mb-1">Track Booking</h4>
+                  <p className="text-xs text-muted-foreground">
+                    Check your booking status
+                  </p>
+                </div>
+                <ArrowRight className="h-4 w-4 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+              </Link>
+
+              <Link
+                href="/vehicles"
+                className="group flex flex-col items-center gap-3 p-6 bg-card border rounded-lg transition-all hover:shadow-md hover:border-primary/50"
+              >
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                  <Car className="h-6 w-6 text-primary" />
+                </div>
+                <div className="text-center">
+                  <h4 className="font-semibold mb-1">Browse Vehicles</h4>
+                  <p className="text-xs text-muted-foreground">
+                    Explore more options
+                  </p>
+                </div>
+                <ArrowRight className="h-4 w-4 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+              </Link>
+
+              <Link
+                href="/"
+                className="group flex flex-col items-center gap-3 p-6 bg-card border rounded-lg transition-all hover:shadow-md hover:border-primary/50"
+              >
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                  <Home className="h-6 w-6 text-primary" />
+                </div>
+                <div className="text-center">
+                  <h4 className="font-semibold mb-1">Back to Home</h4>
+                  <p className="text-xs text-muted-foreground">
+                    Return to homepage
+                  </p>
+                </div>
+                <ArrowRight className="h-4 w-4 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+              </Link>
+            </div>
           </div>
-          <ol className="space-y-2 text-muted-foreground list-decimal list-inside">
-            <li>
-              You will receive a confirmation email shortly with all booking
-              details
-            </li>
-            <li>
-              Our team will review your booking and verify the information
-            </li>
-            <li>
-              You will receive a payment link to complete your reservation
-            </li>
-            <li>
-              Once payment is confirmed, you will receive your rental agreement
-            </li>
-          </ol>
-        </div>
-
-        {/* Need Help */}
-        <div className="bg-card border rounded-lg p-6 mb-8">
-          <div className="flex items-center gap-2 mb-4">
-            <HelpCircle className="h-5 w-5 text-primary" />
-            <h3 className="text-xl font-bold">Need Help?</h3>
-          </div>
-          <p className="text-muted-foreground mb-4">
-            If you have any questions about your booking, please contact us:
-          </p>
-          <ul className="space-y-3 text-muted-foreground">
-            <li className="flex items-center gap-2">
-              <Mail className="h-4 w-4" />
-              <span>Email: bookings@sascufleet.com</span>
-            </li>
-            <li className="flex items-center gap-2">
-              <Phone className="h-4 w-4" />
-              <span>Phone: (555) 123-4567</span>
-            </li>
-            <li className="flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              <span>Hours: Monday-Friday, 8:00 AM - 6:00 PM</span>
-            </li>
-          </ul>
-        </div>
-
-        {/* Navigation Links */}
-        <div className="flex flex-wrap items-center justify-center gap-4 border-t pt-8">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            Back to Home
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-          <Link
-            href="/track-booking"
-            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            Track Your Booking
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-          <Link
-            href="/vehicles"
-            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            Browse More Vehicles
-            <ArrowRight className="h-4 w-4" />
-          </Link>
         </div>
       </section>
     </div>
