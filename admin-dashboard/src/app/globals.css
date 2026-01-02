@@ -122,7 +122,7 @@
 }
 
 @media print {
-  .print\\:hidden { display: none !important; }
+  .print\:hidden { display: none !important; }
   body { background: white !important; }
   .p-6 { padding: 1rem !important; }
 }

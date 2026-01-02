@@ -74,6 +74,7 @@ export default function AdminBookingsPage() {
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
+  let disableSaveButton: boolean= false;
 
   const [form, setForm] = useState({
     userId: '',
@@ -667,8 +668,9 @@ export default function AdminBookingsPage() {
                     new Date(b.startDate) < end &&
                     new Date(b.endDate) > start
                   );
-
+                  disableSaveButton = false;
                   if (conflict) {
+                    disableSaveButton = true;
                     return (
                       <div className="flex items-start gap-3 text-red-600">
                         <XCircle className="w-6 h-6 shrink-0 mt-0.5" />
@@ -688,6 +690,7 @@ export default function AdminBookingsPage() {
                   }
 
                   return (
+                    
                     <div className="flex items-center gap-3 text-green-600">
                       <CheckCircle2 className="w-6 h-6 shrink-0" />
                       <p className="font-semibold">Vehicle Available!</p>
@@ -777,18 +780,7 @@ export default function AdminBookingsPage() {
             </Button>
             <Button
               onClick={handleSubmit}
-              disabled={(() => {
-                // Disable save if there's a conflict
-                if (!form.vehicleId || !form.startDate || !form.endDate) return false;
-                const conflict = bookings.find((b: any) =>
-                  b.vehicle?._id === form.vehicleId &&
-                  b._id !== editing?._id &&
-                  b.status !== 'cancelled' &&
-                  new Date(b.startDate) < new Date(form.endDate) &&
-                  new Date(b.endDate) > new Date(form.startDate)
-                );
-                return !!conflict;
-              })()}
+              disabled={disableSaveButton}
             >Save Booking</Button>
           </DialogFooter>
         </DialogContent>

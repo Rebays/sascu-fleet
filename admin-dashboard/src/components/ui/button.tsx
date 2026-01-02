@@ -23,7 +23,8 @@ export function Button({
         size === 'lg' && "text-lg py-3",
         size === 'icon' && "p-2 rounded-full",
         className,
-        'cursor-pointer'
+        'cursor-pointer',
+        'disabled:cursor-not-allowed disabled:opacity-50'
       )}
       {...props}
     />
