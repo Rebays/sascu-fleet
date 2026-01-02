@@ -2,55 +2,141 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import {
+  CheckCircle,
+  Info,
+  HelpCircle,
+  Mail,
+  Phone,
+  Clock,
+  ArrowRight,
+} from "lucide-react";
 
 export default function BookingConfirmationPage() {
   const searchParams = useSearchParams();
   const trackingNumber = searchParams.get("trackingNumber");
 
   return (
-    <div className="max-w-4xl mx-auto p-8">
-      <h1 className="text-3xl font-bold mb-8">Booking Confirmation</h1>
+    <div>
+      {/* Hero Section */}
+      <section className="relative bg-gradient-to-br from-muted/60 via-muted/40 to-background border-b">
+        <div className="container mx-auto px-4 md:px-8 py-16">
+          <div className="text-center">
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
+              Booking Confirmation
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Your reservation has been submitted successfully
+            </p>
+          </div>
+        </div>
+      </section>
 
-      <div className="border p-6">
-        <h2 className="text-2xl font-bold mb-4">Thank You for Your Booking!</h2>
-        <p className="mb-6">Your vehicle rental has been successfully submitted.</p>
+      {/* Main Content */}
+      <section className="container mx-auto px-4 md:px-8 py-12">
+        {/* Success Message */}
+        <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-8 flex items-start gap-3">
+          <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+          <div>
+            <h2 className="text-xl font-bold text-green-900 mb-2">
+              Thank You for Your Booking!
+            </h2>
+            <p className="text-green-800">
+              Your vehicle rental has been successfully submitted.
+            </p>
+          </div>
+        </div>
 
+        {/* Tracking Number */}
         {trackingNumber && (
-          <div className="border p-4 mb-6">
-            <h3 className="text-xl font-bold mb-2">Your Tracking Number:</h3>
-            <p className="text-2xl font-mono mb-2"><strong>{trackingNumber}</strong></p>
-            <p>Please save this tracking number. You can use it to track your booking status.</p>
+          <div className="bg-card border rounded-lg p-6 mb-8">
+            <div className="flex items-center gap-2 mb-4">
+              <Info className="h-5 w-5 text-primary" />
+              <h3 className="text-xl font-bold">Your Tracking Number</h3>
+            </div>
+            <p className="text-2xl font-mono font-semibold mb-2">
+              {trackingNumber}
+            </p>
+            <p className="text-muted-foreground text-sm">
+              Please save this tracking number. You can use it to track your
+              booking status.
+            </p>
           </div>
         )}
 
-        <div className="mb-6">
-          <h3 className="text-xl font-bold mb-3">What Happens Next?</h3>
-          <ol className="list-decimal list-inside space-y-2">
-            <li>You will receive a confirmation email shortly with all booking details</li>
-            <li>Our team will review your booking and verify the information</li>
-            <li>You will receive a payment link to complete your reservation</li>
-            <li>Once payment is confirmed, you will receive your rental agreement</li>
+        {/* What Happens Next */}
+        <div className="bg-card border rounded-lg p-6 mb-8">
+          <div className="flex items-center gap-2 mb-4">
+            <Info className="h-5 w-5 text-primary" />
+            <h3 className="text-xl font-bold">What Happens Next?</h3>
+          </div>
+          <ol className="space-y-2 text-muted-foreground list-decimal list-inside">
+            <li>
+              You will receive a confirmation email shortly with all booking
+              details
+            </li>
+            <li>
+              Our team will review your booking and verify the information
+            </li>
+            <li>
+              You will receive a payment link to complete your reservation
+            </li>
+            <li>
+              Once payment is confirmed, you will receive your rental agreement
+            </li>
           </ol>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-xl font-bold mb-3">Need Help?</h3>
-          <p className="mb-2">If you have any questions about your booking, please contact us:</p>
-          <ul className="list-disc list-inside space-y-1">
-            <li>Email: bookings@sascufleet.com</li>
-            <li>Phone: (555) 123-4567</li>
-            <li>Hours: Monday-Friday, 8:00 AM - 6:00 PM</li>
+        {/* Need Help */}
+        <div className="bg-card border rounded-lg p-6 mb-8">
+          <div className="flex items-center gap-2 mb-4">
+            <HelpCircle className="h-5 w-5 text-primary" />
+            <h3 className="text-xl font-bold">Need Help?</h3>
+          </div>
+          <p className="text-muted-foreground mb-4">
+            If you have any questions about your booking, please contact us:
+          </p>
+          <ul className="space-y-3 text-muted-foreground">
+            <li className="flex items-center gap-2">
+              <Mail className="h-4 w-4" />
+              <span>Email: bookings@sascufleet.com</span>
+            </li>
+            <li className="flex items-center gap-2">
+              <Phone className="h-4 w-4" />
+              <span>Phone: (555) 123-4567</span>
+            </li>
+            <li className="flex items-center gap-2">
+              <Clock className="h-4 w-4" />
+              <span>Hours: Monday-Friday, 8:00 AM - 6:00 PM</span>
+            </li>
           </ul>
         </div>
 
-        <div className="pt-6 border-t space-x-4">
-          <Link href="/" className="underline">Back to Home</Link>
-          <span>|</span>
-          <Link href="/track-booking" className="underline">Track Your Booking</Link>
-          <span>|</span>
-          <Link href="/vehicles" className="underline">Browse More Vehicles</Link>
+        {/* Navigation Links */}
+        <div className="flex flex-wrap items-center justify-center gap-4 border-t pt-8">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            Back to Home
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+          <Link
+            href="/track-booking"
+            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            Track Your Booking
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+          <Link
+            href="/vehicles"
+            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            Browse More Vehicles
+            <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

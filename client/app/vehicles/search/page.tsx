@@ -7,6 +7,21 @@ import { searchVehicles } from "@/lib/api";
 import { VEHICLE_TYPE_DISPLAY } from "@/lib/constants";
 import { formatCurrency, calculateDays } from "@/lib/utils";
 import type { VehicleDisplay } from "@/lib/types";
+import { Car, Bike, Truck, MapPin, Calendar, ArrowRight, AlertCircle, Search, Loader2 } from "lucide-react";
+
+// Map vehicle types to icons
+const VehicleIcon = ({ type }: { type: string }) => {
+  const iconClass = "h-6 w-6";
+  switch (type) {
+    case "bike":
+    case "scooter":
+      return <Bike className={iconClass} />;
+    case "truck":
+      return <Truck className={iconClass} />;
+    default:
+      return <Car className={iconClass} />;
+  }
+};
 
 export default function VehicleSearchPage() {
   const searchParams = useSearchParams();
@@ -44,102 +59,213 @@ export default function VehicleSearchPage() {
 
   if (loading) {
     return (
-      <div className="max-w-6xl mx-auto p-8">
-        <h1 className="text-3xl font-bold mb-4">Searching...</h1>
-        <Link href="/" className="underline mb-8 inline-block">
-          Back to Home
-        </Link>
+      <div>
+        <section className="relative bg-gradient-to-br from-muted/60 via-muted/40 to-background border-b">
+          <div className="container mx-auto px-4 md:px-8 py-16">
+            <div className="text-center">
+              <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
+                Search Results
+              </h1>
+            </div>
+          </div>
+        </section>
+        <section className="container mx-auto px-4 md:px-8 py-12">
+          <div className="flex items-center justify-center gap-3 text-muted-foreground">
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <p className="text-lg">Searching for available vehicles...</p>
+          </div>
+        </section>
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-8">
-      <h1 className="text-3xl font-bold mb-4">Search Results</h1>
-      <Link href="/" className="underline mb-8 inline-block">
-        Back to Home
-      </Link>
-
-      {error && (
-        <div className="border border-red-500 bg-red-50 p-4 mb-8">
-          <h3 className="text-xl font-bold mb-2 text-red-700">Error Searching Vehicles</h3>
-          <p className="text-red-600">{error}</p>
-          <p className="mt-2 text-sm text-red-500">
-            Make sure the backend server is running at http://localhost:5000
-          </p>
-        </div>
-      )}
-
-      <div className="border p-4 mb-8">
-        <h2 className="text-xl font-bold mb-2">Search Criteria</h2>
-        <p className="mb-1">
-          <strong>Pickup Date:</strong> {startDate || "Not specified"}
-        </p>
-        <p className="mb-1">
-          <strong>Return Date:</strong> {endDate || "Not specified"}
-        </p>
-        <p className="mb-1">
-          <strong>Vehicle Type:</strong> {type ? VEHICLE_TYPE_DISPLAY[type] || type : "All Types"}
-        </p>
-        {startDate && endDate && (
-          <p>
-            <strong>Rental Duration:</strong> {days} day{days !== 1 ? "s" : ""}
-          </p>
-        )}
-        {!startDate || !endDate ? (
-          <p className="mt-2 text-sm text-gray-600">
-            Note: Date-based availability checking requires backend support (coming soon)
-          </p>
-        ) : null}
-      </div>
-
-      <div>
-        <h2 className="text-2xl font-bold mb-6">
-          Available Vehicles ({vehicles.length})
-        </h2>
-
-        {vehicles.length === 0 && !error && (
-          <div className="border p-6 text-center">
-            <p className="text-lg mb-2">
-              No vehicles found matching your search criteria.
+    <div>
+      {/* Hero Section */}
+      <section className="relative bg-gradient-to-br from-muted/60 via-muted/40 to-background border-b">
+        <div className="container mx-auto px-4 md:px-8 py-16">
+          <div className="text-center">
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
+              Search Results
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Showing available vehicles based on your search criteria
             </p>
-            <Link href="/" className="underline">
-              Try a different search
+          </div>
+        </div>
+      </section>
+
+      {/* Main Content */}
+      <section className="container mx-auto px-4 md:px-8 py-12">
+        {/* Search Criteria Card */}
+        <div className="bg-card border rounded-lg p-6 mb-8">
+          <div className="flex items-center gap-2 mb-4">
+            <Search className="h-5 w-5 text-primary" />
+            <h2 className="text-xl font-bold">Search Criteria</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+            <div>
+              <p className="text-muted-foreground mb-1">Pickup Date</p>
+              <p className="font-semibold">
+                {startDate ? new Date(startDate).toLocaleDateString() : "Not specified"}
+              </p>
+            </div>
+            <div>
+              <p className="text-muted-foreground mb-1">Return Date</p>
+              <p className="font-semibold">
+                {endDate ? new Date(endDate).toLocaleDateString() : "Not specified"}
+              </p>
+            </div>
+            <div>
+              <p className="text-muted-foreground mb-1">Vehicle Type</p>
+              <p className="font-semibold">
+                {type ? VEHICLE_TYPE_DISPLAY[type] || type : "All Types"}
+              </p>
+            </div>
+            {startDate && endDate && (
+              <div>
+                <p className="text-muted-foreground mb-1">Duration</p>
+                <p className="font-semibold">
+                  {days} day{days !== 1 ? "s" : ""}
+                </p>
+              </div>
+            )}
+          </div>
+          <div className="mt-4 pt-4 border-t">
+            <Link
+              href="/"
+              className="text-sm text-primary hover:underline font-medium"
+            >
+              ← Modify Search
+            </Link>
+          </div>
+        </div>
+
+        {/* Error State */}
+        {error && (
+          <div className="bg-destructive/10 border border-destructive/50 rounded-lg p-6 mb-8">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
+              <div>
+                <h3 className="text-lg font-semibold text-destructive mb-2">
+                  Error Searching Vehicles
+                </h3>
+                <p className="text-destructive/90 mb-2">{error}</p>
+                <p className="text-sm text-destructive/70">
+                  Make sure the backend server is running
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Results Count */}
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold">
+            Available Vehicles
+            {vehicles.length > 0 && (
+              <span className="text-muted-foreground ml-2">
+                ({vehicles.length})
+              </span>
+            )}
+          </h2>
+        </div>
+
+        {/* Empty State */}
+        {vehicles.length === 0 && !error && (
+          <div className="bg-card border rounded-lg p-12 text-center">
+            <Car className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-xl font-semibold mb-2">
+              No vehicles found
+            </h3>
+            <p className="text-muted-foreground mb-6">
+              No vehicles match your search criteria. Try adjusting your dates or vehicle type.
+            </p>
+            <Link
+              href="/"
+              className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              Try a Different Search
             </Link>
           </div>
         )}
 
+        {/* Vehicle Grid */}
         {vehicles.length > 0 && (
-          <ul className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {vehicles.map((vehicle) => (
-              <li key={vehicle._id} className="border p-6">
-                <h3 className="text-xl font-bold mb-2">{vehicle.displayName}</h3>
-                <p className="mb-1">Type: {VEHICLE_TYPE_DISPLAY[vehicle.type] || vehicle.type}</p>
-                <p className="mb-1">Year: {vehicle.year}</p>
-                <p className="mb-1">Location: {vehicle.location}</p>
-                <p className="mb-1">
-                  Price: {formatCurrency(vehicle.pricePerDay)}/day
-                  {vehicle.pricePerHour > 0 && ` or ${formatCurrency(vehicle.pricePerHour)}/hour`}
-                </p>
-                {startDate && endDate && (
-                  <p className="mb-3 text-lg font-bold">
-                    Total Cost: {formatCurrency(vehicle.pricePerDay * days)} ({days} day
-                    {days !== 1 ? "s" : ""})
-                  </p>
-                )}
-                <Link
-                  href={`/vehicles/${vehicle._id}${
-                    startDate && endDate ? `?startDate=${startDate}&endDate=${endDate}` : ''
-                  }`}
-                  className="underline font-semibold"
-                >
-                  View Details & Book
-                </Link>
-              </li>
+              <div
+                key={vehicle._id}
+                className="group bg-card border rounded-lg overflow-hidden hover:shadow-lg transition-all"
+              >
+                {/* Vehicle Image Placeholder */}
+                <div className="bg-muted/40 h-48 flex items-center justify-center border-b">
+                  <VehicleIcon type={vehicle.type} />
+                </div>
+
+                {/* Card Content */}
+                <div className="p-6">
+                  {/* Type Badge */}
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium mb-3">
+                    <VehicleIcon type={vehicle.type} />
+                    {VEHICLE_TYPE_DISPLAY[vehicle.type] || vehicle.type}
+                  </div>
+
+                  {/* Vehicle Name */}
+                  <h3 className="text-xl font-bold mb-3">
+                    {vehicle.displayName}
+                  </h3>
+
+                  {/* Details */}
+                  <div className="space-y-2 mb-4 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4" />
+                      <span>Year: {vehicle.year}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4" />
+                      <span>{vehicle.location}</span>
+                    </div>
+                  </div>
+
+                  {/* Price */}
+                  <div className="mb-4 pb-4 border-b">
+                    <div className="text-2xl font-bold text-primary">
+                      {formatCurrency(vehicle.pricePerDay)}
+                      <span className="text-sm font-normal text-muted-foreground">
+                        /day
+                      </span>
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1 h-5">
+                      {vehicle.pricePerHour > 0 ? (
+                        <>or {formatCurrency(vehicle.pricePerHour)}/hour</>
+                      ) : (
+                        <>&nbsp;</>
+                      )}
+                    </p>
+                    {startDate && endDate && (
+                      <p className="text-sm font-semibold text-foreground mt-2">
+                        Total: {formatCurrency(vehicle.pricePerDay * days)} ({days} day{days !== 1 ? "s" : ""})
+                      </p>
+                    )}
+                  </div>
+
+                  {/* CTA Button */}
+                  <Link
+                    href={`/vehicles/${vehicle._id}${
+                      startDate && endDate ? `?startDate=${startDate}&endDate=${endDate}` : ''
+                    }`}
+                    className="w-full inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 group-hover:gap-3"
+                  >
+                    View Details & Book
+                    <ArrowRight className="h-4 w-4 transition-all" />
+                  </Link>
+                </div>
+              </div>
             ))}
-          </ul>
+          </div>
         )}
-      </div>
+      </section>
     </div>
   );
 }

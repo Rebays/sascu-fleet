@@ -7,6 +7,33 @@ import { getVehicleById, calculateBookingPrice, getBookedDates, checkDateConflic
 import { VEHICLE_TYPE_DISPLAY } from "@/lib/constants";
 import { formatCurrency } from "@/lib/utils";
 import type { VehicleDisplay } from "@/lib/types";
+import {
+  Car,
+  Bike,
+  Truck,
+  MapPin,
+  Calendar,
+  AlertCircle,
+  CheckCircle,
+  XCircle,
+  Info,
+  ArrowLeft,
+  Loader2,
+} from "lucide-react";
+
+// Map vehicle types to icons
+const VehicleIcon = ({ type }: { type: string }) => {
+  const iconClass = "h-8 w-8";
+  switch (type) {
+    case "bike":
+    case "scooter":
+      return <Bike className={iconClass} />;
+    case "truck":
+      return <Truck className={iconClass} />;
+    default:
+      return <Car className={iconClass} />;
+  }
+};
 
 export default function VehicleDetailsPage({
   params,
@@ -85,30 +112,67 @@ export default function VehicleDetailsPage({
 
   if (loading) {
     return (
-      <div className="max-w-4xl mx-auto p-8">
-        <h1 className="text-3xl font-bold mb-4">Loading...</h1>
-        <Link href="/vehicles" className="underline">
-          Back to Vehicles
-        </Link>
+      <div>
+        <section className="relative bg-gradient-to-br from-muted/60 via-muted/40 to-background border-b">
+          <div className="container mx-auto px-4 md:px-8 py-16">
+            <div className="text-center">
+              <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
+                Loading Vehicle...
+              </h1>
+            </div>
+          </div>
+        </section>
+        <section className="container mx-auto px-4 md:px-8 py-12">
+          <div className="flex items-center justify-center py-20">
+            <div className="text-center">
+              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
+              <p className="text-muted-foreground">Loading vehicle details...</p>
+            </div>
+          </div>
+        </section>
       </div>
     );
   }
 
   if (error || !vehicle) {
     return (
-      <div className="max-w-4xl mx-auto p-8">
-        <h1 className="text-3xl font-bold mb-4">Vehicle Not Found</h1>
-        {error && (
-          <div className="border border-red-500 bg-red-50 p-4 mb-4">
-            <p className="text-red-600">{error}</p>
-            <p className="mt-2 text-sm text-red-500">
-              Make sure the backend server is running
-            </p>
+      <div>
+        <section className="relative bg-gradient-to-br from-muted/60 via-muted/40 to-background border-b">
+          <div className="container mx-auto px-4 md:px-8 py-16">
+            <div className="text-center">
+              <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
+                Vehicle Not Found
+              </h1>
+            </div>
           </div>
-        )}
-        <Link href="/vehicles" className="underline">
-          Back to Vehicles
-        </Link>
+        </section>
+        <section className="container mx-auto px-4 md:px-8 py-12">
+          {error && (
+            <div className="bg-destructive/10 border border-destructive/50 rounded-lg p-6 mb-8 max-w-2xl mx-auto">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="text-lg font-semibold text-destructive mb-2">
+                    Error Loading Vehicle
+                  </h3>
+                  <p className="text-destructive/90 mb-2">{error}</p>
+                  <p className="text-sm text-destructive/70">
+                    Make sure the backend server is running
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+          <div className="text-center">
+            <Link
+              href="/vehicles"
+              className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Vehicles
+            </Link>
+          </div>
+        </section>
       </div>
     );
   }
@@ -118,181 +182,260 @@ export default function VehicleDetailsPage({
     : null;
 
   return (
-    <div className="max-w-4xl mx-auto p-8">
-      <h1 className="text-3xl font-bold mb-4">{vehicle.displayName}</h1>
-      <Link href="/vehicles" className="underline mb-8 inline-block">
-        Back to Vehicles
-      </Link>
-
-      <div className="border p-6 mb-6">
-        <h2 className="text-2xl font-bold mb-4">Vehicle Details</h2>
-        <div className="space-y-2 mb-6">
-          <p>
-            <strong>Make:</strong> {vehicle.make}
-          </p>
-          <p>
-            <strong>Model:</strong> {vehicle.model}
-          </p>
-          <p>
-            <strong>Type:</strong>{" "}
-            {VEHICLE_TYPE_DISPLAY[vehicle.type] || vehicle.type}
-          </p>
-          <p>
-            <strong>Year:</strong> {vehicle.year}
-          </p>
-          <p>
-            <strong>Location:</strong> {vehicle.location}
-          </p>
-          <p>
-            <strong>License Plate:</strong> {vehicle.licensePlate}
-          </p>
-          <p>
-            <strong>Price:</strong> {formatCurrency(vehicle.pricePerDay)}/day
-            {vehicle.pricePerHour > 0 &&
-              ` or ${formatCurrency(vehicle.pricePerHour)}/hour`}
-          </p>
-        </div>
-
-        {vehicle.description && (
-          <>
-            <h3 className="text-xl font-bold mb-2">Description</h3>
-            <p className="mb-6">{vehicle.description}</p>
-          </>
-        )}
-
-        {vehicle.features && vehicle.features.length > 0 && (
-          <>
-            <h3 className="text-xl font-bold mb-2">Features</h3>
-            <ul className="list-disc list-inside space-y-1">
-              {vehicle.features.map((feature, index) => (
-                <li key={index}>{feature}</li>
-              ))}
-            </ul>
-          </>
-        )}
-      </div>
-
-      {/* Booking Widget */}
-      <div className="border p-6">
-        <h3 className="text-2xl font-bold mb-4">Book This Vehicle</h3>
-
-        {/* Show booked dates information */}
-        {bookedDates.length > 0 && (
-          <div className="border border-yellow-500 bg-yellow-50 p-4 mb-4">
-            <h4 className="font-semibold text-yellow-800 mb-2">Currently Booked Dates:</h4>
-            <ul className="text-sm text-yellow-700 space-y-1">
-              {bookedDates.map((booking, index) => (
-                <li key={index}>
-                  {new Date(booking.startDate).toLocaleDateString()} - {new Date(booking.endDate).toLocaleDateString()}
-                  {" "}({booking.status})
-                </li>
-              ))}
-            </ul>
-            <p className="text-xs text-yellow-600 mt-2">
-              Please select dates that don't overlap with these bookings
-            </p>
-          </div>
-        )}
-
-        <div className="mb-6">
-          <h4 className="text-lg font-semibold mb-4">Select Your Rental Dates</h4>
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="startDate" className="block mb-1 font-semibold">
-                Pickup Date: <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="date"
-                id="startDate"
-                name="startDate"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="w-full border p-2"
-                min={new Date().toISOString().split("T")[0]}
-                required
-              />
-            </div>
-
-            <div>
-              <label htmlFor="endDate" className="block mb-1 font-semibold">
-                Return Date: <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="date"
-                id="endDate"
-                name="endDate"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="w-full border p-2"
-                min={startDate || new Date().toISOString().split("T")[0]}
-                required
-              />
-            </div>
-          </div>
-        </div>
-
-        {pricing && (
-          <div className="border p-4 mb-6 bg-gray-50">
-            <h4 className="text-lg font-semibold mb-3">Rental Summary</h4>
-            <div className="space-y-2">
-              <p>
-                <strong>Duration:</strong> {pricing.days} day
-                {pricing.days !== 1 ? "s" : ""}
-                {pricing.priceType === "hourly" && ` (${pricing.hours} hours)`}
-              </p>
-              <p>
-                <strong>Rate:</strong> {formatCurrency(vehicle.pricePerDay)}/day
-                {pricing.priceType === "hourly" && ` or ${formatCurrency(vehicle.pricePerHour)}/hour`}
-              </p>
-              <p className="text-xl pt-2 border-t">
-                <strong>Total Cost:</strong> {formatCurrency(pricing.totalPrice)}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Show validation status */}
-        {dateConflict && startDate && endDate ? (
-          <div className="border border-red-500 bg-red-50 p-4">
-            <p className="font-bold text-red-800">
-              ✗ Date Conflict Detected
-            </p>
-            <p className="text-sm text-red-700 mt-1">
-              Your selected dates ({new Date(startDate).toLocaleDateString()} - {new Date(endDate).toLocaleDateString()})
-              conflict with booking {dateConflict.bookingRef}.
-            </p>
-            <p className="text-sm text-red-700 mt-1">
-              Conflicting booking: {new Date(dateConflict.startDate).toLocaleDateString()} - {new Date(dateConflict.endDate).toLocaleDateString()}
-            </p>
-            <p className="text-sm text-red-600 mt-2 font-semibold">
-              Please select different dates to continue.
-            </p>
-          </div>
-        ) : startDate && endDate ? (
-          <>
-            <div className="border border-green-500 bg-green-50 p-4 mb-4">
-              <p className="font-bold text-green-800">
-                ✓ Vehicle is available for your selected dates!
-              </p>
-              <p className="text-sm text-green-700 mt-1">
-                Click below to proceed with your booking.
-              </p>
-            </div>
-            <button
-              onClick={handleBookNow}
-              className="w-full border p-3 font-bold text-lg hover:bg-gray-50"
+    <div>
+      {/* Hero Section */}
+      <section className="relative bg-gradient-to-br from-muted/60 via-muted/40 to-background border-b">
+        <div className="container mx-auto px-4 md:px-8 py-8">
+          {/* Breadcrumb */}
+          <nav className="mb-6">
+            <Link
+              href="/vehicles"
+              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
-              Book Now
-            </button>
-          </>
-        ) : (
-          <div className="border p-4 bg-blue-50">
-            <p className="text-blue-800">
-              Please select both pickup and return dates to see pricing and check availability.
-            </p>
+              <ArrowLeft className="h-4 w-4" />
+              Back to Vehicles
+            </Link>
+          </nav>
+
+          {/* Vehicle Header */}
+          <div className="flex items-start gap-6">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 flex-shrink-0">
+              <VehicleIcon type={vehicle.type} />
+            </div>
+            <div className="flex-1">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-3">
+                {VEHICLE_TYPE_DISPLAY[vehicle.type] || vehicle.type}
+              </div>
+              <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">
+                {vehicle.displayName}
+              </h1>
+              <div className="flex flex-wrap items-center gap-4 text-muted-foreground">
+                <div className="flex items-center gap-1.5">
+                  <Calendar className="h-4 w-4" />
+                  <span className="text-sm">{vehicle.year}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <MapPin className="h-4 w-4" />
+                  <span className="text-sm">{vehicle.location}</span>
+                </div>
+              </div>
+            </div>
           </div>
-        )}
-      </div>
+        </div>
+      </section>
+
+      {/* Main Content */}
+      <section className="container mx-auto px-4 md:px-8 py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column - Vehicle Details */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Vehicle Image Placeholder */}
+            <div className="bg-muted/40 rounded-lg h-96 flex items-center justify-center border">
+              <VehicleIcon type={vehicle.type} />
+            </div>
+
+            {/* Vehicle Specifications */}
+            <div className="bg-card border rounded-lg p-6">
+              <h2 className="text-2xl font-bold mb-4">Vehicle Specifications</h2>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Make</p>
+                  <p className="font-semibold">{vehicle.make}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Model</p>
+                  <p className="font-semibold">{vehicle.model}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Year</p>
+                  <p className="font-semibold">{vehicle.year}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">License Plate</p>
+                  <p className="font-semibold">{vehicle.licensePlate}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Location</p>
+                  <p className="font-semibold">{vehicle.location}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Daily Rate</p>
+                  <p className="font-semibold text-primary">{formatCurrency(vehicle.pricePerDay)}</p>
+                </div>
+                {vehicle.pricePerHour > 0 && (
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Hourly Rate</p>
+                    <p className="font-semibold text-primary">{formatCurrency(vehicle.pricePerHour)}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {vehicle.description && (
+              <div className="bg-card border rounded-lg p-6">
+                <h2 className="text-2xl font-bold mb-4">Description</h2>
+                <p className="text-muted-foreground leading-relaxed">{vehicle.description}</p>
+              </div>
+            )}
+
+            {vehicle.features && vehicle.features.length > 0 && (
+              <div className="bg-card border rounded-lg p-6">
+                <h2 className="text-2xl font-bold mb-4">Features</h2>
+                <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {vehicle.features.map((feature, index) => (
+                    <li key={index} className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-primary flex-shrink-0" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+
+          {/* Right Column - Booking Widget */}
+          <div className="lg:col-span-1">
+            <div className="bg-card border rounded-lg p-6 lg:sticky lg:top-4">
+              <h3 className="text-2xl font-bold mb-6">Book This Vehicle</h3>
+
+              {/* Show booked dates information */}
+              {bookedDates.length > 0 && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                  <div className="flex items-start gap-2">
+                    <Info className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="font-semibold text-yellow-900 mb-2">Currently Booked Dates</h4>
+                      <ul className="text-sm text-yellow-800 space-y-1">
+                        {bookedDates.map((booking, index) => (
+                          <li key={index}>
+                            {new Date(booking.startDate).toLocaleDateString()} - {new Date(booking.endDate).toLocaleDateString()}
+                            <span className="text-yellow-600"> ({booking.status})</span>
+                          </li>
+                        ))}
+                      </ul>
+                      <p className="text-xs text-yellow-700 mt-2">
+                        Please select dates that don't overlap
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Date Selection */}
+              <div className="space-y-4 mb-6">
+                <div>
+                  <label htmlFor="startDate" className="text-sm font-medium flex items-center gap-2 mb-2">
+                    <Calendar className="h-4 w-4" />
+                    Pickup Date <span className="text-destructive">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    id="startDate"
+                    name="startDate"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    min={new Date().toISOString().split("T")[0]}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="endDate" className="text-sm font-medium flex items-center gap-2 mb-2">
+                    <Calendar className="h-4 w-4" />
+                    Return Date <span className="text-destructive">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    id="endDate"
+                    name="endDate"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    min={startDate || new Date().toISOString().split("T")[0]}
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Pricing Summary */}
+              {pricing && (
+                <div className="bg-muted/50 rounded-lg p-4 mb-6">
+                  <h4 className="font-semibold mb-3">Rental Summary</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Duration</span>
+                      <span className="font-medium">
+                        {pricing.days} day{pricing.days !== 1 ? "s" : ""}
+                        {pricing.priceType === "hourly" && ` (${pricing.hours} hours)`}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Rate</span>
+                      <span className="font-medium">{formatCurrency(vehicle.pricePerDay)}/day</span>
+                    </div>
+                    <div className="flex justify-between pt-2 border-t">
+                      <span className="font-semibold">Total Cost</span>
+                      <span className="text-xl font-bold text-primary">{formatCurrency(pricing.totalPrice)}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Validation Status */}
+              {dateConflict && startDate && endDate ? (
+                <div className="bg-destructive/10 border border-destructive/50 rounded-lg p-4">
+                  <div className="flex items-start gap-2">
+                    <XCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-semibold text-destructive mb-1">
+                        Date Conflict Detected
+                      </p>
+                      <p className="text-sm text-destructive/90 mb-1">
+                        Your dates conflict with booking {dateConflict.bookingRef}
+                      </p>
+                      <p className="text-xs text-destructive/70">
+                        {new Date(dateConflict.startDate).toLocaleDateString()} - {new Date(dateConflict.endDate).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : startDate && endDate ? (
+                <>
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                    <div className="flex items-start gap-2">
+                      <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-semibold text-green-900">
+                          Available for your dates!
+                        </p>
+                        <p className="text-sm text-green-700 mt-1">
+                          Click below to proceed with booking
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleBookNow}
+                    className="w-full inline-flex items-center justify-center gap-2 rounded-md bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  >
+                    Book Now
+                  </button>
+                </>
+              ) : (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-start gap-2">
+                    <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                    <p className="text-sm text-blue-900">
+                      Select both pickup and return dates to see pricing and check availability
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
