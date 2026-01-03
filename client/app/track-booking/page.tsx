@@ -111,7 +111,7 @@ export default function TrackBookingPage() {
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                 <Search className="h-6 w-6 text-primary" />
               </div>
-              <h2 className="text-2xl font-bold">Find Your Booking</h2>
+              <h2 className="text-2xl font-bold">Track Booking</h2>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -150,7 +150,6 @@ export default function TrackBookingPage() {
                   </>
                 ) : (
                   <>
-                    <Search className="h-5 w-5" />
                     Track My Booking
                   </>
                 )}

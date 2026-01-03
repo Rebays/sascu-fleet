@@ -12,11 +12,14 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full px-4 md:px-6 pt-4">
-      <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+    <header className="sticky top-0 z-50 w-full px-0 md:px-6 pt-0 md:pt-4 backdrop-blur-md">
+      <div className="bg-white/95 border-0 md:border md:border-gray-200 md:rounded-lg shadow-sm">
         <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-8">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 font-bold text-xl text-black">
+          <Link
+            href="/"
+            className="flex items-center gap-2 font-bold text-xl text-black"
+          >
             <span>SASCU</span>
           </Link>
 
@@ -33,9 +36,7 @@ export default function Header() {
             <Link
               href="/vehicles"
               className={`text-sm font-medium transition-colors hover:text-primary ${
-                isActive("/vehicles")
-                  ? "text-black"
-                  : "text-gray-600"
+                isActive("/vehicles") ? "text-black" : "text-gray-600"
               }`}
             >
               Vehicles

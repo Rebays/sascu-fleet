@@ -8,7 +8,17 @@ import { VEHICLE_TYPE_DISPLAY } from "@/lib/constants";
 import { formatCurrency, calculateDays } from "@/lib/utils";
 import type { VehicleDisplay } from "@/lib/types";
 import Breadcrumb from "@/components/Breadcrumb";
-import { Car, Bike, Truck, MapPin, Calendar, ArrowRight, AlertCircle, Search, Loader2 } from "lucide-react";
+import {
+  Car,
+  Bike,
+  Truck,
+  MapPin,
+  Calendar,
+  ArrowRight,
+  AlertCircle,
+  Search,
+  Loader2,
+} from "lucide-react";
 
 // Map vehicle types to icons
 const VehicleIcon = ({ type }: { type: string }) => {
@@ -103,7 +113,7 @@ export default function VehicleSearchPage() {
           <Breadcrumb
             items={[
               { label: "Vehicles", href: "/vehicles" },
-              { label: "Search Results" }
+              { label: "Search Results" },
             ]}
           />
         </div>
@@ -118,13 +128,17 @@ export default function VehicleSearchPage() {
             <div>
               <p className="text-muted-foreground mb-1">Pickup Date</p>
               <p className="font-semibold">
-                {startDate ? new Date(startDate).toLocaleDateString() : "Not specified"}
+                {startDate
+                  ? new Date(startDate).toLocaleDateString()
+                  : "Not specified"}
               </p>
             </div>
             <div>
               <p className="text-muted-foreground mb-1">Return Date</p>
               <p className="font-semibold">
-                {endDate ? new Date(endDate).toLocaleDateString() : "Not specified"}
+                {endDate
+                  ? new Date(endDate).toLocaleDateString()
+                  : "Not specified"}
               </p>
             </div>
             <div>
@@ -186,11 +200,10 @@ export default function VehicleSearchPage() {
         {vehicles.length === 0 && !error && (
           <div className="bg-card border rounded-lg p-12 text-center">
             <Car className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2">
-              No vehicles found
-            </h3>
+            <h3 className="text-xl font-semibold mb-2">No vehicles found</h3>
             <p className="text-muted-foreground mb-6">
-              No vehicles match your search criteria. Try adjusting your dates or vehicle type.
+              No vehicles match your search criteria. Try adjusting your dates
+              or vehicle type.
             </p>
             <Link
               href="/"
@@ -256,7 +269,8 @@ export default function VehicleSearchPage() {
                     </p>
                     {startDate && endDate && (
                       <p className="text-sm font-semibold text-foreground mt-2">
-                        Total: {formatCurrency(vehicle.pricePerDay * days)} ({days} day{days !== 1 ? "s" : ""})
+                        Total: {formatCurrency(vehicle.pricePerDay * days)} (
+                        {days} day{days !== 1 ? "s" : ""})
                       </p>
                     )}
                   </div>
@@ -264,11 +278,13 @@ export default function VehicleSearchPage() {
                   {/* CTA Button */}
                   <Link
                     href={`/vehicles/${vehicle._id}${
-                      startDate && endDate ? `?startDate=${startDate}&endDate=${endDate}` : ''
+                      startDate && endDate
+                        ? `?startDate=${startDate}&endDate=${endDate}`
+                        : ""
                     }`}
                     className="w-full inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 group-hover:gap-3"
                   >
-                    View Details & Book
+                    Reserve
                     <ArrowRight className="h-4 w-4 transition-all" />
                   </Link>
                 </div>

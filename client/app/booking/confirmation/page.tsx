@@ -207,9 +207,6 @@ export default function BookingConfirmationPage() {
                 href="/track-booking"
                 className="group flex flex-col items-center gap-3 p-6 bg-card border rounded-lg transition-all hover:shadow-md hover:border-primary/50"
               >
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                  <Search className="h-6 w-6 text-primary" />
-                </div>
                 <div className="text-center">
                   <h4 className="font-semibold mb-1">Track Booking</h4>
                   <p className="text-xs text-muted-foreground">
@@ -223,9 +220,6 @@ export default function BookingConfirmationPage() {
                 href="/vehicles"
                 className="group flex flex-col items-center gap-3 p-6 bg-card border rounded-lg transition-all hover:shadow-md hover:border-primary/50"
               >
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                  <Car className="h-6 w-6 text-primary" />
-                </div>
                 <div className="text-center">
                   <h4 className="font-semibold mb-1">Browse Vehicles</h4>
                   <p className="text-xs text-muted-foreground">
@@ -239,9 +233,6 @@ export default function BookingConfirmationPage() {
                 href="/"
                 className="group flex flex-col items-center gap-3 p-6 bg-card border rounded-lg transition-all hover:shadow-md hover:border-primary/50"
               >
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                  <Home className="h-6 w-6 text-primary" />
-                </div>
                 <div className="text-center">
                   <h4 className="font-semibold mb-1">Back to Home</h4>
                   <p className="text-xs text-muted-foreground">

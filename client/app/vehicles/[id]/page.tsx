@@ -3,7 +3,13 @@
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useEffect, use } from "react";
-import { getVehicleById, calculateBookingPrice, getBookedDates, checkDateConflict, type BookedDate } from "@/lib/api";
+import {
+  getVehicleById,
+  calculateBookingPrice,
+  getBookedDates,
+  checkDateConflict,
+  type BookedDate,
+} from "@/lib/api";
 import { VEHICLE_TYPE_DISPLAY } from "@/lib/constants";
 import { formatCurrency } from "@/lib/utils";
 import type { VehicleDisplay } from "@/lib/types";
@@ -69,7 +75,7 @@ export default function VehicleDetailsPage({
         // Fetch vehicle details and booked dates in parallel
         const [vehicleData, bookedDatesData] = await Promise.all([
           getVehicleById(id),
-          getBookedDates(id)
+          getBookedDates(id),
         ]);
 
         setVehicle(vehicleData);
@@ -108,11 +114,15 @@ export default function VehicleDetailsPage({
     }
 
     if (dateConflict) {
-      alert(`These dates conflict with an existing booking (${dateConflict.bookingRef}). Please select different dates.`);
+      alert(
+        `These dates conflict with an existing booking (${dateConflict.bookingRef}). Please select different dates.`
+      );
       return;
     }
 
-    router.push(`/booking?vehicleId=${vehicle?._id}&startDate=${startDate}&endDate=${endDate}`);
+    router.push(
+      `/booking?vehicleId=${vehicle?._id}&startDate=${startDate}&endDate=${endDate}`
+    );
   };
 
   if (loading) {
@@ -131,7 +141,9 @@ export default function VehicleDetailsPage({
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
               <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
-              <p className="text-muted-foreground">Loading vehicle details...</p>
+              <p className="text-muted-foreground">
+                Loading vehicle details...
+              </p>
             </div>
           </div>
         </section>
@@ -181,9 +193,10 @@ export default function VehicleDetailsPage({
     );
   }
 
-  const pricing = (startDate && endDate && vehicle)
-    ? calculateBookingPrice(vehicle, startDate, endDate)
-    : null;
+  const pricing =
+    startDate && endDate && vehicle
+      ? calculateBookingPrice(vehicle, startDate, endDate)
+      : null;
 
   return (
     <div>
@@ -219,7 +232,7 @@ export default function VehicleDetailsPage({
           <Breadcrumb
             items={[
               { label: "Vehicles", href: "/vehicles" },
-              { label: vehicle.displayName }
+              { label: vehicle.displayName },
             ]}
           />
         </div>
@@ -233,7 +246,9 @@ export default function VehicleDetailsPage({
 
             {/* Vehicle Specifications */}
             <div className="bg-card border rounded-lg p-6">
-              <h2 className="text-2xl font-bold mb-4">Vehicle Specifications</h2>
+              <h2 className="text-2xl font-bold mb-4">
+                Vehicle Specifications
+              </h2>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">Make</p>
@@ -248,7 +263,9 @@ export default function VehicleDetailsPage({
                   <p className="font-semibold">{vehicle.year}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">License Plate</p>
+                  <p className="text-sm text-muted-foreground mb-1">
+                    License Plate
+                  </p>
                   <p className="font-semibold">{vehicle.licensePlate}</p>
                 </div>
                 <div>
@@ -256,13 +273,21 @@ export default function VehicleDetailsPage({
                   <p className="font-semibold">{vehicle.location}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">Daily Rate</p>
-                  <p className="font-semibold text-primary">{formatCurrency(vehicle.pricePerDay)}</p>
+                  <p className="text-sm text-muted-foreground mb-1">
+                    Daily Rate
+                  </p>
+                  <p className="font-semibold text-primary">
+                    {formatCurrency(vehicle.pricePerDay)}
+                  </p>
                 </div>
                 {vehicle.pricePerHour > 0 && (
                   <div>
-                    <p className="text-sm text-muted-foreground mb-1">Hourly Rate</p>
-                    <p className="font-semibold text-primary">{formatCurrency(vehicle.pricePerHour)}</p>
+                    <p className="text-sm text-muted-foreground mb-1">
+                      Hourly Rate
+                    </p>
+                    <p className="font-semibold text-primary">
+                      {formatCurrency(vehicle.pricePerHour)}
+                    </p>
                   </div>
                 )}
               </div>
@@ -271,7 +296,9 @@ export default function VehicleDetailsPage({
             {vehicle.description && (
               <div className="bg-card border rounded-lg p-6">
                 <h2 className="text-2xl font-bold mb-4">Description</h2>
-                <p className="text-muted-foreground leading-relaxed">{vehicle.description}</p>
+                <p className="text-muted-foreground leading-relaxed">
+                  {vehicle.description}
+                </p>
               </div>
             )}
 
@@ -291,7 +318,9 @@ export default function VehicleDetailsPage({
 
             {/* Rental Terms & Policies */}
             <div className="bg-card border rounded-lg p-6">
-              <h2 className="text-2xl font-bold mb-4">Rental Terms & Policies</h2>
+              <h2 className="text-2xl font-bold mb-4">
+                Rental Terms & Policies
+              </h2>
               <div className="space-y-4 text-sm">
                 <div>
                   <h3 className="font-semibold mb-2 flex items-center gap-2">
@@ -299,7 +328,8 @@ export default function VehicleDetailsPage({
                     Driver Requirements
                   </h3>
                   <p className="text-muted-foreground">
-                    Valid driver's license required. Minimum age: 21 years. Additional fees may apply for drivers under 25.
+                    Valid driver's license required. Minimum age: 21 years.
+                    Additional fees may apply for drivers under 25.
                   </p>
                 </div>
                 <div>
@@ -308,7 +338,8 @@ export default function VehicleDetailsPage({
                     Insurance Coverage
                   </h3>
                   <p className="text-muted-foreground">
-                    Basic insurance included. Optional comprehensive coverage available at checkout.
+                    Basic insurance included. Optional comprehensive coverage
+                    available at checkout.
                   </p>
                 </div>
                 <div>
@@ -317,7 +348,8 @@ export default function VehicleDetailsPage({
                     Cancellation Policy
                   </h3>
                   <p className="text-muted-foreground">
-                    Free cancellation up to 24 hours before pickup. Cancellations within 24 hours subject to 50% fee.
+                    Free cancellation up to 24 hours before pickup.
+                    Cancellations within 24 hours subject to 50% fee.
                   </p>
                 </div>
                 <div>
@@ -326,7 +358,8 @@ export default function VehicleDetailsPage({
                     Pickup & Return
                   </h3>
                   <p className="text-muted-foreground">
-                    Vehicle must be picked up and returned to the same location. Late returns subject to additional daily rate.
+                    Vehicle must be picked up and returned to the same location.
+                    Late returns subject to additional daily rate.
                   </p>
                 </div>
               </div>
@@ -336,7 +369,7 @@ export default function VehicleDetailsPage({
           {/* Right Column - Booking Widget */}
           <div className="lg:col-span-1">
             <div className="bg-card border rounded-lg p-6 lg:sticky lg:top-24">
-              <h3 className="text-2xl font-bold mb-6">Book This Vehicle</h3>
+              <h3 className="text-2xl font-bold mb-6">Reserve Vehicle</h3>
 
               {/* Show booked dates information */}
               {bookedDates.length > 0 && (
@@ -344,12 +377,18 @@ export default function VehicleDetailsPage({
                   <div className="flex items-start gap-2">
                     <Info className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
                     <div>
-                      <h4 className="font-semibold text-yellow-900 mb-2">Currently Booked Dates</h4>
+                      <h4 className="font-semibold text-yellow-900 mb-2">
+                        Currently Booked Dates
+                      </h4>
                       <ul className="text-sm text-yellow-800 space-y-1">
                         {bookedDates.map((booking, index) => (
                           <li key={index}>
-                            {new Date(booking.startDate).toLocaleDateString()} - {new Date(booking.endDate).toLocaleDateString()}
-                            <span className="text-yellow-600"> ({booking.status})</span>
+                            {new Date(booking.startDate).toLocaleDateString()} -{" "}
+                            {new Date(booking.endDate).toLocaleDateString()}
+                            <span className="text-yellow-600">
+                              {" "}
+                              ({booking.status})
+                            </span>
                           </li>
                         ))}
                       </ul>
@@ -364,7 +403,10 @@ export default function VehicleDetailsPage({
               {/* Date Selection */}
               <div className="space-y-4 mb-6">
                 <div>
-                  <label htmlFor="startDate" className="text-sm font-medium flex items-center gap-2 mb-2">
+                  <label
+                    htmlFor="startDate"
+                    className="text-sm font-medium flex items-center gap-2 mb-2"
+                  >
                     <Calendar className="h-4 w-4" />
                     Pickup Date <span className="text-destructive">*</span>
                   </label>
@@ -381,7 +423,10 @@ export default function VehicleDetailsPage({
                 </div>
 
                 <div>
-                  <label htmlFor="endDate" className="text-sm font-medium flex items-center gap-2 mb-2">
+                  <label
+                    htmlFor="endDate"
+                    className="text-sm font-medium flex items-center gap-2 mb-2"
+                  >
                     <Calendar className="h-4 w-4" />
                     Return Date <span className="text-destructive">*</span>
                   </label>
@@ -407,16 +452,21 @@ export default function VehicleDetailsPage({
                       <span className="text-muted-foreground">Duration</span>
                       <span className="font-medium">
                         {pricing.days} day{pricing.days !== 1 ? "s" : ""}
-                        {pricing.priceType === "hourly" && ` (${pricing.hours} hours)`}
+                        {pricing.priceType === "hourly" &&
+                          ` (${pricing.hours} hours)`}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Rate</span>
-                      <span className="font-medium">{formatCurrency(vehicle.pricePerDay)}/day</span>
+                      <span className="font-medium">
+                        {formatCurrency(vehicle.pricePerDay)}/day
+                      </span>
                     </div>
                     <div className="flex justify-between pt-2 border-t">
                       <span className="font-semibold">Total Cost</span>
-                      <span className="text-xl font-bold text-primary">{formatCurrency(pricing.totalPrice)}</span>
+                      <span className="text-xl font-bold text-primary">
+                        {formatCurrency(pricing.totalPrice)}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -432,10 +482,12 @@ export default function VehicleDetailsPage({
                         Date Conflict Detected
                       </p>
                       <p className="text-sm text-destructive/90 mb-1">
-                        Your dates conflict with booking {dateConflict.bookingRef}
+                        Your dates conflict with booking{" "}
+                        {dateConflict.bookingRef}
                       </p>
                       <p className="text-xs text-destructive/70">
-                        {new Date(dateConflict.startDate).toLocaleDateString()} - {new Date(dateConflict.endDate).toLocaleDateString()}
+                        {new Date(dateConflict.startDate).toLocaleDateString()}{" "}
+                        - {new Date(dateConflict.endDate).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
@@ -459,7 +511,7 @@ export default function VehicleDetailsPage({
                     onClick={handleBookNow}
                     className="w-full inline-flex items-center justify-center gap-2 rounded-md bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   >
-                    Book Now
+                    Reserve
                   </button>
                 </>
               ) : (
@@ -467,7 +519,8 @@ export default function VehicleDetailsPage({
                   <div className="flex items-start gap-2">
                     <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
                     <p className="text-sm text-blue-900">
-                      Select both pickup and return dates to see pricing and check availability
+                      Select both pickup and return dates to see pricing and
+                      check availability
                     </p>
                   </div>
                 </div>
