@@ -172,6 +172,15 @@ const getBookingByRef = catchAsync(async (req, res) => {
 
   if (!booking) return res.status(404).json({ message: "Booking not found" });
 
+  // If booking start date is today or in the past, return expired
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const bEnd = new Date(booking.endDate);
+  const bookingDate = new Date(bEnd.getFullYear(), bEnd.getMonth(), bEnd.getDate());
+  if (bookingDate.getTime() <= today.getTime()) {
+    return res.status(400).json({ success: false, message: "Booking expired" });
+  }
+
   res.json({ success: true, data: booking });
 });
 
