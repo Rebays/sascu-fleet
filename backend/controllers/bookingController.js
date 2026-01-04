@@ -168,7 +168,7 @@ const getBookingById = catchAsync(async (req, res) => {
 const getBookingByRef = catchAsync(async (req, res) => {
   const booking = await Booking.findOne({ bookingRef: req.params.ref })
     .populate("user", "name email phone")
-    .populate("vehicle", "make model year licensePlate location");
+    .populate("vehicle", "make model year licensePlate images location");
 
   if (!booking) return res.status(404).json({ message: "Booking not found" });
 
