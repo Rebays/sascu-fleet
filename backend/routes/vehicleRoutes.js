@@ -1,11 +1,14 @@
 const express = require('express');
-const { getVehicles, getVehicleById, createVehicle,updateVehicle,deleteVehicle } = require('../controllers/vehicleController');
+const { getVehicles, getVehicleById, getAvailableVehiclesByDateRange, getBookingDatesForVehicle, createVehicle,updateVehicle,deleteVehicle } = require('../controllers/vehicleController');
 const { protect } = require('../middleware/auth');
 const admin = require('../middleware/admin');
 
 const router = express.Router();
 
+// Public endpoints
 router.get('/', getVehicles);
+router.get('/available', getAvailableVehiclesByDateRange);
+router.get('/:id/bookings', getBookingDatesForVehicle);
 router.get('/:id', getVehicleById);
 
 // Only admins can CRUD vehicles

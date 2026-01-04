@@ -1,5 +1,10 @@
 // src/controllers/vehicleController.js
+
+//for available vehicles 
+//1st expect date range, return list of vechiels that are available in that date range
+//2nd expect vehicle id, return booking dates for that vehicle from day after up to next 3 months
 const Vehicle = require('../models/Vehicle');
+const Booking = require('../models/Booking');
 const catchAsync = require('../utils/catchAsync');
 
 const getVehicles = catchAsync(async (req, res) => {
@@ -12,6 +17,77 @@ const getVehicleById = catchAsync(async (req, res) => {
   if (!vehicle) return res.status(404).json({ message: 'Vehicle not found' });
   res.json(vehicle);
 });
+
+const getAvailableVehiclesByDateRange = catchAsync(async (req, res) => {
+  const { startDate, endDate } = req.query; 
+  if (!startDate || !endDate) {
+    return res.status(400).json({ message: 'startDate and endDate query parameters are required' });
+  }
+
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+
+  if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+    return res.status(400).json({ message: 'Invalid startDate or endDate' });
+  }
+
+  if (start > end) {
+    return res.status(400).json({ message: 'startDate must be before endDate' });
+  }
+
+  // Find bookings that overlap the requested range and are active
+  const conflictingBookings = await Booking.find({
+    status: { $in: ['pending', 'confirmed'] },
+    $or: [
+      { startDate: { $lte: end }, endDate: { $gte: start } }
+    ]
+  }).select('vehicle').lean();
+
+  const blockedVehicleIds = conflictingBookings.map(b => String(b.vehicle));
+
+  const vehicles = await Vehicle.find({
+    isAvailable: true,
+    _id: { $nin: blockedVehicleIds }
+  });
+
+  res.json({ success: true, count: vehicles.length, data: vehicles });
+});
+
+const getBookingDatesForVehicle = catchAsync(async (req, res) => {
+  const { id } = req.params;
+
+  const from = new Date();
+  from.setDate(from.getDate() + 1);
+  from.setHours(0,0,0,0);
+
+  const to = new Date(from);
+  to.setMonth(to.getMonth() + 3);
+  to.setHours(23,59,59,999);
+
+  // Verify vehicle exists
+  const vehicle = await Vehicle.findById(id);
+  if (!vehicle) return res.status(404).json({ message: 'Vehicle not found' });
+
+  // Find bookings for this vehicle that overlap the window
+  const bookings = await Booking.find({
+    vehicle: id,
+    status: { $in: ['pending', 'confirmed'] },
+    $or: [
+      { startDate: { $lte: to }, endDate: { $gte: from } }
+    ]
+  }).select('startDate endDate bookingRef status').sort('startDate').lean();
+
+  // Normalize ranges into the requested window
+  const ranges = bookings.map(b => ({
+    bookingRef: b.bookingRef,
+    status: b.status,
+    startDate: new Date(Math.max(new Date(b.startDate), from)),
+    endDate: new Date(Math.min(new Date(b.endDate), to))
+  }));
+
+  res.json({ success: true, data: ranges });
+});
+
 
 const createVehicle = catchAsync(async (req, res) => {
   const vehicle = await Vehicle.create(req.body);
@@ -68,4 +144,4 @@ const deleteVehicle = catchAsync(async (req, res) => {
   });
 });
 
-module.exports = { getVehicles, getVehicleById, createVehicle,deleteVehicle,updateVehicle };
+module.exports = { getVehicles, getVehicleById, getAvailableVehiclesByDateRange, getBookingDatesForVehicle, createVehicle,deleteVehicle,updateVehicle };
