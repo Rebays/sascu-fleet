@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { searchVehicles } from "@/lib/api";
-import { VEHICLE_TYPE_DISPLAY } from "@/lib/constants";
+import { VEHICLE_TYPE_DISPLAY, API_URL } from "@/lib/constants";
 import { formatCurrency, calculateDays } from "@/lib/utils";
 import type { VehicleDisplay } from "@/lib/types";
 import Breadcrumb from "@/components/Breadcrumb";
@@ -32,6 +33,17 @@ const VehicleIcon = ({ type }: { type: string }) => {
     default:
       return <Car className={iconClass} />;
   }
+};
+
+// Helper function to get the full image URL
+const getImageUrl = (imagePath: string): string => {
+  // If it's already a full URL, return as-is
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    return imagePath;
+  }
+  // Otherwise, construct URL using backend base URL
+  const baseUrl = API_URL.replace('/api', '');
+  return `${baseUrl}${imagePath.startsWith('/') ? '' : '/'}${imagePath}`;
 };
 
 export default function VehicleSearchPage() {
@@ -222,9 +234,21 @@ export default function VehicleSearchPage() {
                 key={vehicle._id}
                 className="group bg-card border rounded-lg overflow-hidden hover:shadow-lg transition-all"
               >
-                {/* Vehicle Image Placeholder */}
-                <div className="bg-muted/40 h-48 flex items-center justify-center border-b">
-                  <VehicleIcon type={vehicle.type} />
+                {/* Vehicle Image */}
+                <div className="relative bg-muted/40 h-48 border-b overflow-hidden">
+                  {vehicle.images && vehicle.images.length > 0 ? (
+                    <Image
+                      src={getImageUrl(vehicle.images[0])}
+                      alt={vehicle.displayName}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    />
+                  ) : (
+                    <div className="h-full flex items-center justify-center">
+                      <VehicleIcon type={vehicle.type} />
+                    </div>
+                  )}
                 </div>
 
                 {/* Card Content */}

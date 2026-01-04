@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState, useEffect } from "react";
 import { getVehicles } from "@/lib/api";
 import { formatCurrency } from "@/lib/utils";
-import { VEHICLE_TYPE_DISPLAY } from "@/lib/constants";
+import { VEHICLE_TYPE_DISPLAY, API_URL } from "@/lib/constants";
 import type { VehicleDisplay } from "@/lib/types";
 import {
   Search,
@@ -33,6 +34,17 @@ const VehicleIcon = ({ type }: { type: string }) => {
     default:
       return <Car className={iconClass} />;
   }
+};
+
+// Helper function to get the full image URL
+const getImageUrl = (imagePath: string): string => {
+  // If it's already a full URL, return as-is
+  if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
+    return imagePath;
+  }
+  // Otherwise, construct URL using backend base URL
+  const baseUrl = API_URL.replace("/api", "");
+  return `${baseUrl}${imagePath.startsWith("/") ? "" : "/"}${imagePath}`;
 };
 
 export default function Home() {
@@ -99,8 +111,8 @@ export default function Home() {
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-4">
                 Book A Vehicle
               </h1>
-              <p className="text-lg md:text-xl text-white/90 max-w-2xl">
-                INSERT SASCU DESCRIPTION HERE
+              <p className="text-lg md:text-xl text-white/90 max-w-2xl mb-6">
+                Insert SASCU description here
               </p>
             </div>
 
@@ -214,8 +226,20 @@ export default function Home() {
                   href={`/vehicles/${vehicle._id}`}
                   className="group bg-card border rounded-lg overflow-hidden transition-all hover:shadow-lg hover:border-primary/50"
                 >
-                  <div className="bg-muted/40 h-48 flex items-center justify-center border-b">
-                    <VehicleIcon type={vehicle.type} />
+                  <div className="relative bg-muted/40 h-48 border-b overflow-hidden">
+                    {vehicle.images && vehicle.images.length > 0 ? (
+                      <Image
+                        src={getImageUrl(vehicle.images[0])}
+                        alt={vehicle.displayName}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      />
+                    ) : (
+                      <div className="h-full flex items-center justify-center">
+                        <VehicleIcon type={vehicle.type} />
+                      </div>
+                    )}
                   </div>
                   <div className="p-6">
                     <div className="flex items-center gap-2 mb-2">

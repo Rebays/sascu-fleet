@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useEffect, use } from "react";
 import {
@@ -10,7 +11,7 @@ import {
   checkDateConflict,
   type BookedDate,
 } from "@/lib/api";
-import { VEHICLE_TYPE_DISPLAY } from "@/lib/constants";
+import { VEHICLE_TYPE_DISPLAY, API_URL } from "@/lib/constants";
 import { formatCurrency } from "@/lib/utils";
 import type { VehicleDisplay } from "@/lib/types";
 import Breadcrumb from "@/components/Breadcrumb";
@@ -39,6 +40,17 @@ const VehicleIcon = ({ type }: { type: string }) => {
     default:
       return <Car className={iconClass} />;
   }
+};
+
+// Helper function to get the full image URL
+const getImageUrl = (imagePath: string): string => {
+  // If it's already a full URL, return as-is
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    return imagePath;
+  }
+  // Otherwise, construct URL using backend base URL
+  const baseUrl = API_URL.replace('/api', '');
+  return `${baseUrl}${imagePath.startsWith('/') ? '' : '/'}${imagePath}`;
 };
 
 export default function VehicleDetailsPage({
@@ -79,7 +91,7 @@ export default function VehicleDetailsPage({
         ]);
 
         setVehicle(vehicleData);
-        setBookedDates(bookedDatesData.data.bookedDates);
+        setBookedDates(bookedDatesData.data?.bookedDates || []);
       } catch (err: any) {
         setError(err.message || "Failed to load vehicle");
         setVehicle(null);
@@ -99,7 +111,7 @@ export default function VehicleDetailsPage({
 
   // Validate dates whenever they change
   useEffect(() => {
-    if (startDate && endDate && bookedDates.length > 0) {
+    if (startDate && endDate && bookedDates && bookedDates.length > 0) {
       const conflict = checkDateConflict(startDate, endDate, bookedDates);
       setDateConflict(conflict);
     } else {
@@ -239,9 +251,22 @@ export default function VehicleDetailsPage({
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Vehicle Details */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Vehicle Image Placeholder */}
-            <div className="bg-muted/40 rounded-lg h-96 flex items-center justify-center border">
-              <VehicleIcon type={vehicle.type} />
+            {/* Vehicle Image */}
+            <div className="relative bg-muted/40 rounded-lg h-96 border overflow-hidden">
+              {vehicle.images && vehicle.images.length > 0 ? (
+                <Image
+                  src={getImageUrl(vehicle.images[0])}
+                  alt={vehicle.displayName}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 100vw, 66vw"
+                  priority
+                />
+              ) : (
+                <div className="h-full flex items-center justify-center">
+                  <VehicleIcon type={vehicle.type} />
+                </div>
+              )}
             </div>
 
             {/* Vehicle Specifications */}
@@ -372,7 +397,7 @@ export default function VehicleDetailsPage({
               <h3 className="text-2xl font-bold mb-6">Reserve Vehicle</h3>
 
               {/* Show booked dates information */}
-              {bookedDates.length > 0 && (
+              {bookedDates && bookedDates.length > 0 && (
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
                   <div className="flex items-start gap-2">
                     <Info className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
