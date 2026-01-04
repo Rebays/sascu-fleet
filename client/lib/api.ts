@@ -1,15 +1,11 @@
-import { API_URL } from './constants';
-import type { Vehicle, VehicleDisplay } from './types';
+import { API_URL } from "./constants";
+import type { Vehicle, VehicleDisplay } from "./types";
 
 // Helper function to handle API errors
 class ApiError extends Error {
-  constructor(
-    message: string,
-    public status?: number,
-    public data?: any
-  ) {
+  constructor(message: string, public status?: number, public data?: any) {
     super(message);
-    this.name = 'ApiError';
+    this.name = "ApiError";
   }
 }
 
@@ -32,9 +28,9 @@ function transformVehicle(vehicle: Vehicle): VehicleDisplay {
 export async function getVehicles(): Promise<VehicleDisplay[]> {
   try {
     const response = await fetch(`${API_URL}/vehicles`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       // Enable credentials if using cookies for auth later
       // credentials: 'include',
@@ -43,7 +39,7 @@ export async function getVehicles(): Promise<VehicleDisplay[]> {
     if (!response.ok) {
       const error = await response.json().catch(() => ({}));
       throw new ApiError(
-        error.message || 'Failed to fetch vehicles',
+        error.message || "Failed to fetch vehicles",
         response.status,
         error
       );
@@ -56,7 +52,7 @@ export async function getVehicles(): Promise<VehicleDisplay[]> {
       throw error;
     }
     throw new ApiError(
-      'Network error: Unable to connect to the server. Please check your connection.',
+      "Network error: Unable to connect to the server. Please check your connection.",
       undefined,
       error
     );
@@ -70,16 +66,16 @@ export async function getVehicles(): Promise<VehicleDisplay[]> {
 export async function getVehicleById(id: string): Promise<VehicleDisplay> {
   try {
     const response = await fetch(`${API_URL}/vehicles/${id}`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     });
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({}));
       throw new ApiError(
-        error.message || 'Failed to fetch vehicle',
+        error.message || "Failed to fetch vehicle",
         response.status,
         error
       );
@@ -92,7 +88,7 @@ export async function getVehicleById(id: string): Promise<VehicleDisplay> {
       throw error;
     }
     throw new ApiError(
-      'Network error: Unable to connect to the server. Please check your connection.',
+      "Network error: Unable to connect to the server. Please check your connection.",
       undefined,
       error
     );
@@ -103,14 +99,16 @@ export async function getVehicleById(id: string): Promise<VehicleDisplay> {
  * Filter vehicles by type
  * Note: This is client-side filtering since backend doesn't support type filtering yet
  */
-export async function getVehiclesByType(type?: string): Promise<VehicleDisplay[]> {
+export async function getVehiclesByType(
+  type?: string
+): Promise<VehicleDisplay[]> {
   const vehicles = await getVehicles();
 
   if (!type) {
     return vehicles;
   }
 
-  return vehicles.filter(vehicle => vehicle.type === type);
+  return vehicles.filter((vehicle) => vehicle.type === type);
 }
 
 /**
@@ -123,26 +121,31 @@ export interface VehicleSearchParams {
   type?: string;
 }
 
-export async function searchVehicles(params: VehicleSearchParams): Promise<VehicleDisplay[]> {
+export async function searchVehicles(
+  params: VehicleSearchParams
+): Promise<VehicleDisplay[]> {
   try {
     // Build query parameters
     const queryParams = new URLSearchParams();
-    if (params.startDate) queryParams.set('startDate', params.startDate);
-    if (params.endDate) queryParams.set('endDate', params.endDate);
-    if (params.type) queryParams.set('type', params.type);
+    if (params.startDate) queryParams.set("startDate", params.startDate);
+    if (params.endDate) queryParams.set("endDate", params.endDate);
+    if (params.type) queryParams.set("type", params.type);
 
     // Call backend search endpoint that filters by availability
-    const response = await fetch(`${API_URL}/vehicles/search?${queryParams.toString()}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    const response = await fetch(
+      `${API_URL}/vehicles/available?${queryParams.toString()}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({}));
       throw new ApiError(
-        error.message || 'Failed to search vehicles',
+        error.message || "Failed to search vehicles",
         response.status,
         error
       );
@@ -156,7 +159,7 @@ export async function searchVehicles(params: VehicleSearchParams): Promise<Vehic
       throw error;
     }
     throw new ApiError(
-      'Network error: Unable to connect to the server. Please check your connection.',
+      "Network error: Unable to connect to the server. Please check your connection.",
       undefined,
       error
     );
@@ -171,7 +174,12 @@ export function calculateBookingPrice(
   vehicle: VehicleDisplay,
   startDate: string,
   endDate: string
-): { days: number; hours: number; totalPrice: number; priceType: 'daily' | 'hourly' } {
+): {
+  days: number;
+  hours: number;
+  totalPrice: number;
+  priceType: "daily" | "hourly";
+} {
   const start = new Date(startDate);
   const end = new Date(endDate);
 
@@ -185,14 +193,14 @@ export function calculateBookingPrice(
       days: Math.ceil(days),
       hours,
       totalPrice: Math.ceil(days) * vehicle.pricePerDay,
-      priceType: 'daily',
+      priceType: "daily",
     };
   } else {
     return {
       days,
       hours: Math.ceil(hours),
       totalPrice: Math.ceil(hours) * vehicle.pricePerHour,
-      priceType: 'hourly',
+      priceType: "hourly",
     };
   }
 }
@@ -296,9 +304,9 @@ export async function createBooking(
 ): Promise<BookingResponse> {
   try {
     const response = await fetch(`${API_URL}/bookings`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(bookingData),
     });
@@ -306,7 +314,7 @@ export async function createBooking(
     if (!response.ok) {
       const error = await response.json().catch(() => ({}));
       throw new ApiError(
-        error.message || 'Failed to create booking',
+        error.message || "Failed to create booking",
         response.status,
         error
       );
@@ -318,7 +326,7 @@ export async function createBooking(
       throw error;
     }
     throw new ApiError(
-      'Network error: Unable to connect to the server. Please check your connection.',
+      "Network error: Unable to connect to the server. Please check your connection.",
       undefined,
       error
     );
@@ -329,25 +337,28 @@ export async function createBooking(
  * Track booking by reference number (public)
  * Maps to: GET /api/bookings/track/:bookingRef
  */
-export async function trackBooking(bookingRef: string): Promise<TrackingResponse> {
+export async function trackBooking(
+  bookingRef: string
+): Promise<TrackingResponse> {
   try {
     const response = await fetch(`${API_URL}/bookings/track/${bookingRef}`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     });
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({}));
       throw new ApiError(
-        error.message || 'Booking not found',
+        error.message || "Booking not found",
         response.status,
         error
       );
     }
 
-    const backendResponse: { success: boolean; data: BackendBookingData } = await response.json();
+    const backendResponse: { success: boolean; data: BackendBookingData } =
+      await response.json();
 
     // Transform backend response to client-friendly format
     return {
@@ -385,7 +396,7 @@ export async function trackBooking(bookingRef: string): Promise<TrackingResponse
       throw error;
     }
     throw new ApiError(
-      'Network error: Unable to connect to the server. Please check your connection.',
+      "Network error: Unable to connect to the server. Please check your connection.",
       undefined,
       error
     );
@@ -405,29 +416,24 @@ export interface BookedDate {
 
 export interface BookedDatesResponse {
   success: boolean;
-  data: {
-    vehicleId: string;
-    dateRange: {
-      from: string;
-      to: string;
-    };
-    bookedDates: BookedDate[];
-  };
+  data: BookedDate[];
 }
 
-export async function getBookedDates(vehicleId: string): Promise<BookedDatesResponse> {
+export async function getBookedDates(
+  vehicleId: string
+): Promise<BookedDatesResponse> {
   try {
-    const response = await fetch(`${API_URL}/vehicles/${vehicleId}/booked-dates`, {
-      method: 'GET',
+    const response = await fetch(`${API_URL}/vehicles/${vehicleId}/bookings`, {
+      method: "GET",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     });
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({}));
       throw new ApiError(
-        error.message || 'Failed to fetch booked dates',
+        error.message || "Failed to fetch booked dates",
         response.status,
         error
       );
@@ -439,7 +445,7 @@ export async function getBookedDates(vehicleId: string): Promise<BookedDatesResp
       throw error;
     }
     throw new ApiError(
-      'Network error: Unable to connect to the server. Please check your connection.',
+      "Network error: Unable to connect to the server. Please check your connection.",
       undefined,
       error
     );
