@@ -119,6 +119,9 @@
   body {
     @apply bg-background text-foreground;
   }
+  button, a, [role="button"], input[type="submit"] {
+    cursor: pointer !important;
+  }
 }
 
 @media print {

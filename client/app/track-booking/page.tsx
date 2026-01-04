@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useState } from "react";
+import { FormEvent, useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { trackBooking, type TrackingResponse } from "@/lib/api";
 import {
   BOOKING_STATUS_DISPLAY,
@@ -27,6 +28,7 @@ import {
 } from "lucide-react";
 
 export default function TrackBookingPage() {
+  const searchParams = useSearchParams();
   const [trackingNumber, setTrackingNumber] = useState("");
   const [bookingDetails, setBookingDetails] = useState<
     TrackingResponse["data"] | null
@@ -34,14 +36,23 @@ export default function TrackBookingPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  // Check for URL parameter and auto-search
+  useEffect(() => {
+    const refParam = searchParams.get("ref");
+    if (refParam) {
+      setTrackingNumber(refParam);
+      // Automatically search when coming from homepage
+      searchBooking(refParam);
+    }
+  }, [searchParams]);
+
+  const searchBooking = async (bookingRef: string) => {
     setError("");
     setBookingDetails(null);
     setLoading(true);
 
     try {
-      const response = await trackBooking(trackingNumber.trim());
+      const response = await trackBooking(bookingRef.trim());
       setBookingDetails(response.data);
     } catch (err: any) {
       setError(
@@ -51,6 +62,11 @@ export default function TrackBookingPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    searchBooking(trackingNumber);
   };
 
   // Helper function to get status badge color
@@ -140,7 +156,7 @@ export default function TrackBookingPage() {
 
               <button
                 type="submit"
-                className="w-full inline-flex items-center justify-center gap-2 rounded-md bg-primary px-6 py-3.5 text-base font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50"
+                className="w-full inline-flex items-center justify-center gap-2 rounded-md bg-primary px-6 py-3.5 text-base font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 cursor-pointer"
                 disabled={loading}
               >
                 {loading ? (
