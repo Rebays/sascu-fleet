@@ -1,47 +1,46 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Car } from 'lucide-react';
-import toast from 'react-hot-toast';
-import api from '@/lib/api';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Car } from "lucide-react";
+import toast from "react-hot-toast";
+import api from "@/lib/api";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
-      toast.error('Please fill in all fields');
+      toast.error("Please fill in all fields");
       return;
     }
 
     setIsLoading(true);
     try {
-      const res = await api.post('/auth/login', { email, password });
+      const res = await api.post("/auth/login", { email, password });
       const { token, user } = res.data;
 
-      console.log('Logged in user:', user);
-      console.log('Received token:', token);
+      console.log("Logged in user:", user);
+      console.log("Received token:", token);
 
       // Save token
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
 
-      
       document.cookie = `token=${token}; path=/; max-age=604800; SameSite=Lax`;
-     
-      toast.success(`Welcome back, ${user.name || 'Admin'}!`);
-      
+
+      toast.success(`Welcome back, ${user.name || "Admin"}!`);
+
       // Redirect to dashboard
-      router.push('/');
+      router.push("/");
     } catch (err: any) {
-      const message = err.response?.data?.message || 'Invalid credentials';
+      const message = err.response?.data?.message || "Invalid credentials";
       toast.error(message);
     } finally {
       setIsLoading(false);
@@ -55,7 +54,7 @@ export default function LoginPage() {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-full mb-4">
             <Car className="w-10 h-10 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">SASCU Fleet</h1>
+          <h1 className="text-3xl font-bold text-gray-900">SASCU</h1>
           <p className="text-gray-600 mt-2">Vehicle Rental Management</p>
         </div>
 
@@ -99,12 +98,10 @@ export default function LoginPage() {
                 Signing in...
               </span>
             ) : (
-              'Sign In'
+              "Sign In"
             )}
           </Button>
         </form>
-
-       
       </Card>
     </div>
   );

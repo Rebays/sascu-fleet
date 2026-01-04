@@ -3,10 +3,28 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useState, useEffect } from "react";
-import { getVehicleById, createGuestBooking, type GuestBookingData } from "@/lib/api";
+import {
+  getVehicleById,
+  createBooking,
+  type GuestBookingData,
+} from "@/lib/api";
 import { formatCurrency, calculateDays } from "@/lib/utils";
 import { VEHICLE_TYPE_DISPLAY } from "@/lib/constants";
 import type { VehicleDisplay } from "@/lib/types";
+import Breadcrumb from "@/components/Breadcrumb";
+import {
+  Car,
+  Calendar,
+  MapPin,
+  User,
+  Mail,
+  Phone,
+  FileText,
+  AlertCircle,
+  Loader2,
+  ArrowRight,
+  Info,
+} from "lucide-react";
 
 export default function BookingPage() {
   const router = useRouter();
@@ -67,235 +85,372 @@ export default function BookingPage() {
     };
 
     try {
-      const response = await createGuestBooking(bookingData);
+      const response = await createBooking(bookingData);
       // Redirect to confirmation page with booking reference
-      router.push(`/booking/confirmation?trackingNumber=${response.data.bookingRef}`);
+      router.push(
+        `/booking/confirmation?trackingNumber=${response.data.bookingRef}`
+      );
     } catch (err: any) {
       setError(err.message || "Failed to create booking. Please try again.");
       setSubmitting(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="max-w-3xl mx-auto p-8">
-        <h1 className="text-3xl font-bold mb-4">Book Your Vehicle</h1>
-        <p>Loading vehicle details...</p>
-      </div>
-    );
-  }
-
-  if (!vehicleId || !vehicle) {
-    return (
-      <div className="max-w-3xl mx-auto p-8">
-        <h1 className="text-3xl font-bold mb-4">Book Your Vehicle</h1>
-        <div className="border border-yellow-500 bg-yellow-50 p-4 mb-4">
-          <p className="text-yellow-800">No vehicle selected.</p>
-          <p className="text-sm text-yellow-700 mt-2">
-            Please select a vehicle from the vehicles page.
-          </p>
-        </div>
-        <Link href="/vehicles" className="underline">
-          Browse Vehicles
-        </Link>
-      </div>
-    );
-  }
-
   return (
-    <div className="max-w-3xl mx-auto p-8">
-      <h1 className="text-3xl font-bold mb-4">Book Your Vehicle</h1>
-      <Link href="/vehicles" className="underline mb-8 inline-block">
-        Back to Vehicles
-      </Link>
-
-      {vehicle && startDate && endDate && (
-        <div className="border p-4 mb-6">
-          <h3 className="text-xl font-bold mb-3">Booking Summary</h3>
-          <p className="mb-1">
-            <strong>Vehicle:</strong> {vehicle.displayName} ({VEHICLE_TYPE_DISPLAY[vehicle.type]})
-          </p>
-          <p className="mb-1">
-            <strong>Year:</strong> {vehicle.year}
-          </p>
-          <p className="mb-1">
-            <strong>Location:</strong> {vehicle.location}
-          </p>
-          <p className="mb-1">
-            <strong>Pickup Date:</strong> {startDate}
-          </p>
-          <p className="mb-1">
-            <strong>Return Date:</strong> {endDate}
-          </p>
-          <p className="mb-1">
-            <strong>Duration:</strong> {days} day{days !== 1 ? "s" : ""}
-          </p>
-          <p className="font-bold text-lg">
-            <strong>Total Cost:</strong> {formatCurrency(vehicle.pricePerDay * days)}
-          </p>
-        </div>
-      )}
-
-      {error && (
-        <div className="border border-red-500 bg-red-50 p-4 mb-6">
-          <h3 className="text-xl font-bold mb-2 text-red-700">Error</h3>
-          <p className="text-red-600">{error}</p>
-        </div>
-      )}
-
-      <div className="border p-6">
-        <h2 className="text-2xl font-bold mb-4">Booking Form</h2>
-
-        <form onSubmit={handleSubmit}>
-          <div className="mb-8">
-            <h3 className="text-xl font-bold mb-4">Personal Information</h3>
-
-            <div className="mb-4">
-              <label htmlFor="firstName" className="block mb-1 font-semibold">
-                First Name:
-              </label>
-              <input
-                type="text"
-                id="firstName"
-                name="firstName"
-                className="w-full border p-2"
-                required
-              />
-            </div>
-
-            <div className="mb-4">
-              <label htmlFor="lastName" className="block mb-1 font-semibold">
-                Last Name:
-              </label>
-              <input
-                type="text"
-                id="lastName"
-                name="lastName"
-                className="w-full border p-2"
-                required
-              />
-            </div>
-
-            <div className="mb-4">
-              <label htmlFor="email" className="block mb-1 font-semibold">
-                Email:
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                className="w-full border p-2"
-                required
-              />
-            </div>
-
-            <div className="mb-4">
-              <label htmlFor="phone" className="block mb-1 font-semibold">
-                Phone Number:
-              </label>
-              <input
-                type="tel"
-                id="phone"
-                name="phone"
-                className="w-full border p-2"
-                required
-              />
-            </div>
-
-            <div className="mb-4">
-              <label htmlFor="licenseNumber" className="block mb-1 font-semibold">
-                Driver License Number:
-              </label>
-              <input
-                type="text"
-                id="licenseNumber"
-                name="licenseNumber"
-                className="w-full border p-2"
-                required
-              />
-            </div>
-          </div>
-
-          <div className="mb-8">
-            <h3 className="text-xl font-bold mb-4">Rental Details</h3>
-
-            <div className="mb-4">
-              <label htmlFor="pickupDate" className="block mb-1 font-semibold">
-                Pickup Date:
-              </label>
-              <input
-                type="date"
-                id="pickupDate"
-                name="pickupDate"
-                className="w-full border p-2"
-                defaultValue={startDate || ""}
-                min={new Date().toISOString().split("T")[0]}
-                required
-              />
-            </div>
-
-            <div className="mb-4">
-              <label htmlFor="returnDate" className="block mb-1 font-semibold">
-                Return Date:
-              </label>
-              <input
-                type="date"
-                id="returnDate"
-                name="returnDate"
-                className="w-full border p-2"
-                defaultValue={endDate || ""}
-                min={new Date().toISOString().split("T")[0]}
-                required
-              />
-            </div>
-
-            <div className="mb-4">
-              <label htmlFor="pickupLocation" className="block mb-1 font-semibold">
-                Pickup Location:
-              </label>
-              <select
-                id="pickupLocation"
-                name="pickupLocation"
-                className="w-full border p-2"
-                required
-              >
-                <option value="">Select a location</option>
-                <option value="main">Main Office - Downtown</option>
-                <option value="airport">Airport Branch</option>
-                <option value="north">North Side Location</option>
-                <option value="south">South Side Location</option>
-              </select>
-            </div>
-
-            <div className="mb-4">
-              <label htmlFor="additionalNotes" className="block mb-1 font-semibold">
-                Additional Notes:
-              </label>
-              <textarea
-                id="additionalNotes"
-                name="additionalNotes"
-                rows={4}
-                className="w-full border p-2"
-                placeholder="Any special requests or requirements..."
-              ></textarea>
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            className="w-full border p-3 font-bold text-lg"
-            disabled={submitting}
-          >
-            {submitting ? "Creating Booking..." : "Submit Booking"}
-          </button>
-
-          {submitting && (
-            <p className="text-center text-sm text-gray-600 mt-2">
-              Please wait while we process your booking...
+    <div>
+      {/* Hero Section */}
+      <section className="relative bg-gradient-to-br from-muted/60 via-muted/40 to-background border-b">
+        <div className="container mx-auto px-4 md:px-8 py-16">
+          <div className="text-center">
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
+              Complete Your Booking
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Just a few details and you&apos;re ready to hit the road
             </p>
-          )}
-        </form>
-      </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Main Content */}
+      <section className="container mx-auto px-4 md:px-8 py-12">
+        {/* Breadcrumb */}
+        <div className="mb-6">
+          <Breadcrumb
+            items={[
+              { label: "Vehicles", href: "/vehicles" },
+              { label: "Complete Booking" }
+            ]}
+          />
+        </div>
+
+        {loading && (
+          <div className="bg-card border rounded-lg p-12 text-center">
+            <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
+            <p className="text-lg font-medium text-muted-foreground">Loading vehicle details...</p>
+          </div>
+        )}
+
+        {!loading && (!vehicleId || !vehicle) && (
+          <div className="bg-destructive/10 border border-destructive/50 rounded-lg p-8">
+            <div className="flex items-start gap-4">
+              <AlertCircle className="h-6 w-6 text-destructive flex-shrink-0 mt-0.5" />
+              <div>
+                <h3 className="text-xl font-bold text-destructive mb-2">
+                  No Vehicle Selected
+                </h3>
+                <p className="text-destructive/90 mb-4">
+                  Please select a vehicle from the vehicles page to continue with your booking.
+                </p>
+                <Link
+                  href="/vehicles"
+                  className="inline-flex items-center gap-2 rounded-md bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                >
+                  Browse Vehicles
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {!loading && vehicle && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left Column - Form */}
+            <div className="lg:col-span-2">
+              {/* Error Message */}
+              {error && (
+                <div className="bg-destructive/10 border border-destructive/50 rounded-lg p-4 mb-6 flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 text-destructive mt-0.5 flex-shrink-0" />
+                  <div className="text-sm text-destructive/90">{error}</div>
+                </div>
+              )}
+
+              {/* Booking Form */}
+              <div className="bg-card border rounded-lg p-6 md:p-8">
+                <div className="flex items-center gap-2 mb-6">
+                  <User className="h-6 w-6 text-primary" />
+                  <h2 className="text-2xl font-bold">Your Information</h2>
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-8">
+                  {/* Personal Information */}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                      <User className="h-5 w-5 text-primary" />
+                      Personal Details
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label
+                          htmlFor="firstName"
+                          className="text-sm font-medium mb-2 block"
+                        >
+                          First Name
+                        </label>
+                        <input
+                          type="text"
+                          id="firstName"
+                          name="firstName"
+                          placeholder="John"
+                          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="lastName"
+                          className="text-sm font-medium mb-2 block"
+                        >
+                          Last Name
+                        </label>
+                        <input
+                          type="text"
+                          id="lastName"
+                          name="lastName"
+                          placeholder="Doe"
+                          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="email"
+                          className="text-sm font-medium mb-2 block flex items-center gap-2"
+                        >
+                          <Mail className="h-4 w-4" />
+                          Email Address
+                        </label>
+                        <input
+                          type="email"
+                          id="email"
+                          name="email"
+                          placeholder="john.doe@example.com"
+                          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="phone"
+                          className="text-sm font-medium mb-2 block flex items-center gap-2"
+                        >
+                          <Phone className="h-4 w-4" />
+                          Phone Number
+                        </label>
+                        <input
+                          type="tel"
+                          id="phone"
+                          name="phone"
+                          placeholder="(555) 123-4567"
+                          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                          required
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label
+                          htmlFor="licenseNumber"
+                          className="text-sm font-medium mb-2 block flex items-center gap-2"
+                        >
+                          <FileText className="h-4 w-4" />
+                          Driver License Number
+                        </label>
+                        <input
+                          type="text"
+                          id="licenseNumber"
+                          name="licenseNumber"
+                          placeholder="DL123456789"
+                          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Rental Details */}
+                  <div className="pt-6 border-t">
+                    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                      <Calendar className="h-5 w-5 text-primary" />
+                      Rental Information
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label
+                          htmlFor="pickupDate"
+                          className="text-sm font-medium mb-2 block"
+                        >
+                          Pickup Date
+                        </label>
+                        <input
+                          type="date"
+                          id="pickupDate"
+                          name="pickupDate"
+                          defaultValue={startDate || ""}
+                          min="2026-01-02"
+                          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="returnDate"
+                          className="text-sm font-medium mb-2 block"
+                        >
+                          Return Date
+                        </label>
+                        <input
+                          type="date"
+                          id="returnDate"
+                          name="returnDate"
+                          defaultValue={endDate || ""}
+                          min="2026-01-02"
+                          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                          required
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label
+                          htmlFor="pickupLocation"
+                          className="text-sm font-medium mb-2 block flex items-center gap-2"
+                        >
+                          <MapPin className="h-4 w-4" />
+                          Pickup Location
+                        </label>
+                        <select
+                          id="pickupLocation"
+                          name="pickupLocation"
+                          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                          required
+                        >
+                          <option value="">Select a location</option>
+                          <option value="headoffice">Henderson</option>
+                        </select>
+                      </div>
+                      <div className="md:col-span-2">
+                        <label
+                          htmlFor="additionalNotes"
+                          className="text-sm font-medium mb-2 block"
+                        >
+                          Additional Notes (Optional)
+                        </label>
+                        <textarea
+                          id="additionalNotes"
+                          name="additionalNotes"
+                          rows={3}
+                          placeholder="Any special requests or requirements..."
+                          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                        ></textarea>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full inline-flex items-center justify-center gap-2 rounded-md bg-primary px-6 py-3.5 text-base font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50"
+                    disabled={submitting}
+                  >
+                    {submitting ? (
+                      <>
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        Processing Booking...
+                      </>
+                    ) : (
+                      <>
+                        Confirm Booking
+                        <ArrowRight className="h-5 w-5" />
+                      </>
+                    )}
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            {/* Right Column - Summary (Sticky) */}
+            <div className="lg:col-span-1">
+              <div className="lg:sticky lg:top-4 space-y-6">
+                {/* Vehicle Summary */}
+                <div className="bg-card border rounded-lg p-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Car className="h-5 w-5 text-primary" />
+                    <h3 className="text-lg font-bold">Your Vehicle</h3>
+                  </div>
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">Vehicle</p>
+                      <p className="font-semibold">{vehicle.displayName}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">Type</p>
+                      <p className="font-semibold">{VEHICLE_TYPE_DISPLAY[vehicle.type] || vehicle.type}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">Year</p>
+                      <p className="font-semibold">{vehicle.year}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1 flex items-center gap-1">
+                        <MapPin className="h-3 w-3" />
+                        Location
+                      </p>
+                      <p className="font-semibold">{vehicle.location}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Pricing Summary */}
+                {startDate && endDate && (
+                  <div className="bg-card border rounded-lg p-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <FileText className="h-5 w-5 text-primary" />
+                      <h3 className="text-lg font-bold">Booking Summary</h3>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Pickup</span>
+                        <span className="font-medium">{startDate}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Return</span>
+                        <span className="font-medium">{endDate}</span>
+                      </div>
+                      <div className="flex justify-between text-sm pb-3 border-b">
+                        <span className="text-muted-foreground">Duration</span>
+                        <span className="font-medium">{days} day{days !== 1 ? "s" : ""}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Rate per day</span>
+                        <span className="font-medium">{formatCurrency(vehicle.pricePerDay)}</span>
+                      </div>
+                      <div className="flex justify-between items-center pt-3 border-t">
+                        <span className="font-semibold">Total Cost</span>
+                        <span className="text-2xl font-bold text-primary">
+                          {formatCurrency(vehicle.pricePerDay * days)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Important Info */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-start gap-2">
+                    <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                    <div className="text-sm text-blue-900">
+                      <p className="font-semibold mb-2">Important Information</p>
+                      <ul className="space-y-1 text-xs">
+                        <li>• Valid driver&apos;s license required</li>
+                        <li>• Deposit required at pickup</li>
+                        <li>• Payment details needed</li>
+                        <li>• Free cancellation up to 24hrs</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </section>
     </div>
   );
 }

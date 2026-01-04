@@ -1,28 +1,58 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent } from "react";
+import { FormEvent, useState, useEffect } from "react";
+import { getVehicles } from "@/lib/api";
+import { formatCurrency } from "@/lib/utils";
+import { VEHICLE_TYPE_DISPLAY } from "@/lib/constants";
+import type { VehicleDisplay } from "@/lib/types";
 import {
   Search,
   Calendar,
   Car,
+  Bike,
+  Truck,
   CheckCircle,
   Shield,
   Clock,
   Headphones,
-  Star,
-  Quote,
   ArrowRight,
-  Zap,
-  Award,
-  Users,
+  MapPin,
 } from "lucide-react";
+
+// Map vehicle types to icons
+const VehicleIcon = ({ type }: { type: string }) => {
+  const iconClass = "h-6 w-6";
+  switch (type) {
+    case "bike":
+    case "scooter":
+      return <Bike className={iconClass} />;
+    case "truck":
+      return <Truck className={iconClass} />;
+    default:
+      return <Car className={iconClass} />;
+  }
+};
 
 export default function Home() {
   const router = useRouter();
+  const [vehicles, setVehicles] = useState<VehicleDisplay[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchVehicles() {
+      try {
+        const data = await getVehicles();
+        setVehicles(data.slice(0, 6)); // Show only first 6 vehicles
+      } catch (error) {
+        console.error("Failed to fetch vehicles:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchVehicles();
+  }, []);
 
   const handleSearch = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -39,124 +69,269 @@ export default function Home() {
     router.push(`/vehicles/search?${params.toString()}`);
   };
 
+  const handleTrackBooking = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const bookingRef = formData.get("bookingRef");
+    router.push(`/track-booking?ref=${bookingRef}`);
+  };
+
   return (
-    <div className="max-w-4xl mx-auto p-8">
-      <h1 className="text-3xl font-bold mb-2">Welcome to SASCU Fleet</h1>
-      <p className="text-lg mb-8">Your trusted partner for vehicle rentals</p>
+    <div className="-mt-16 lg:-mt-[88px] mb-0">
+      {/* Hero Section with Search Overlay */}
+      <section className="relative h-[calc(80vh+64px)] lg:h-[calc(66vh+88px)] min-h-[588px] flex items-center pt-16 lg:pt-24">
+        {/* Background Image with Overlay */}
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{
+            backgroundImage:
+              "url('https://images.pexels.com/photos/315938/pexels-photo-315938.jpeg?_gl=1*1wihxp7*_ga*MTY4MjEyNDI4OS4xNzY3MzUwMjkw*_ga_8JE65Q40S6*czE3NjczNTAyOTAkbzEkZzEkdDE3NjczNTAzNzMkajU4JGwwJGgw')",
+          }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30"></div>
+        </div>
 
-      <div className="border p-6 mb-12">
-        <h2 className="text-2xl font-bold mb-4">Search Available Vehicles</h2>
-        <form onSubmit={handleSearch}>
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="startDate" className="block mb-1 font-semibold">
-                Pickup Date:
-              </label>
-              <input
-                type="date"
-                id="startDate"
-                name="startDate"
-                className="w-full border p-2"
-                required
-              />
+        {/* Content Container */}
+        <div className="container mx-auto px-4 md:px-8 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+            {/* Hero Text - Left Side */}
+            <div className="text-white">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-4">
+                Book A Vehicle
+              </h1>
+              <p className="text-lg md:text-xl text-white/90 max-w-2xl">
+                INSERT SASCU DESCRIPTION HERE
+              </p>
             </div>
 
-            <div>
-              <label htmlFor="endDate" className="block mb-1 font-semibold">
-                Return Date:
-              </label>
-              <input
-                type="date"
-                id="endDate"
-                name="endDate"
-                className="w-full border p-2"
-                required
-              />
-            </div>
+            {/* Search Widget - Right Side */}
+            <div className="w-full lg:w-[420px] lg:ml-auto">
+              <div className="bg-card/95 backdrop-blur border rounded-lg shadow-2xl p-6 md:p-8">
+                {/* <div className="flex items-center gap-2 mb-6"> */}
+                {/* <Search className="h-5 w-5 text-primary" /> */}
+                {/* <h2 className="text-2xl font-bold">Find A Ride</h2>
+                </div> */}
 
-            <div>
-              <label htmlFor="vehicleType" className="block mb-1 font-semibold">
-                Vehicle Type:
-              </label>
-              <select
-                id="vehicleType"
-                name="vehicleType"
-                className="w-full border p-2"
-              >
-                <option value="">All Types</option>
-                <option value="car">Car</option>
-                <option value="truck">Truck</option>
-                <option value="bike">Bike</option>
-                <option value="scooter">Scooter</option>
-              </select>
-            </div>
+                <form onSubmit={handleSearch}>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="startDate"
+                        className="text-sm font-medium flex items-center gap-2"
+                      >
+                        <Calendar className="h-4 w-4" />
+                        Pickup Date
+                      </label>
+                      <input
+                        type="date"
+                        id="startDate"
+                        name="startDate"
+                        className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                        required
+                      />
+                    </div>
 
-            <button
-              type="submit"
-              className="w-full border p-3 font-bold text-lg"
-            >
-              Search Vehicles
-            </button>
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="endDate"
+                        className="text-sm font-medium flex items-center gap-2"
+                      >
+                        <Calendar className="h-4 w-4" />
+                        Return Date
+                      </label>
+                      <input
+                        type="date"
+                        id="endDate"
+                        name="endDate"
+                        className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="vehicleType"
+                        className="text-sm font-medium flex items-center gap-2"
+                      >
+                        <Car className="h-4 w-4" />
+                        Vehicle Type
+                      </label>
+                      <select
+                        id="vehicleType"
+                        name="vehicleType"
+                        className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      >
+                        <option value="">All Types</option>
+                        <option value="car">Car</option>
+                        <option value="truck">Truck</option>
+                        <option value="bike">Bike</option>
+                        <option value="scooter">Scooter</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full mt-6 inline-flex items-center justify-center gap-2 rounded-md bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  >
+                    Search Vehicles
+                  </button>
+                </form>
+              </div>
+            </div>
           </div>
-        </form>
-      </div>
+        </div>
+      </section>
 
-      <nav className="mb-12">
-        <h2 className="text-2xl font-bold mb-4">Navigation</h2>
-        <ul className="space-y-4">
-          <li className="border p-4">
-            <Link href="/vehicles" className="text-xl font-semibold underline">
-              Browse Vehicles
-            </Link>
-            <p className="mt-1">
-              View our complete fleet of available vehicles
-            </p>
-          </li>
-          <li className="border p-4">
-            <Link href="/booking" className="text-xl font-semibold underline">
-              Book a Vehicle
-            </Link>
-            <p className="mt-1">Make a new reservation</p>
-          </li>
-          <li className="border p-4">
-            <Link
-              href="/track-booking"
-              className="text-xl font-semibold underline"
-            >
-              Track Your Booking
-            </Link>
-            <p className="mt-1">Check the status of your reservation</p>
-          </li>
-          <li className="border p-4">
-            <Link href="/about" className="text-xl font-semibold underline">
-              About Us & Contact
-            </Link>
-            <p className="mt-1">Learn more about us and get in touch</p>
-          </li>
-        </ul>
-      </nav>
+      {/* Vehicles Section */}
+      <section className="container mx-auto px-4 md:px-8 py-16">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">Our Fleet</h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            Choose from our diverse selection of well-maintained vehicles
+          </p>
+        </div>
 
-      {/* <div className="mb-8">
-        <h2 className="text-2xl font-bold mb-4">Why Choose SASCU Fleet?</h2>
-        <ul className="list-disc list-inside space-y-2">
-          <li>Wide selection of quality vehicles</li>
-          <li>Competitive pricing</li>
-          <li>Easy online booking</li>
-          <li>24/7 customer support</li>
-          <li>Multiple locations</li>
-        </ul>
-      </div>
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <div
+                key={i}
+                className="bg-card border rounded-lg p-6 animate-pulse"
+              >
+                <div className="bg-muted rounded-lg h-48 mb-4"></div>
+                <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
+                <div className="h-4 bg-muted rounded w-1/2"></div>
+              </div>
+            ))}
+          </div>
+        ) : vehicles.length > 0 ? (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {vehicles.map((vehicle) => (
+                <Link
+                  key={vehicle._id}
+                  href={`/vehicles/${vehicle._id}`}
+                  className="group bg-card border rounded-lg overflow-hidden transition-all hover:shadow-lg hover:border-primary/50"
+                >
+                  <div className="bg-muted/40 h-48 flex items-center justify-center border-b">
+                    <VehicleIcon type={vehicle.type} />
+                  </div>
+                  <div className="p-6">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
+                        {VEHICLE_TYPE_DISPLAY[vehicle.type] || vehicle.type}
+                      </span>
+                    </div>
+                    <h3 className="text-xl font-bold mb-2 group-hover:text-primary transition-colors">
+                      {vehicle.displayName}
+                    </h3>
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-4 w-4" />
+                        {vehicle.year}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <MapPin className="h-4 w-4" />
+                        {vehicle.location}
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between pt-4 border-t">
+                      <span className="text-2xl font-bold text-primary">
+                        {formatCurrency(vehicle.pricePerDay)}
+                        <span className="text-sm text-muted-foreground font-normal">
+                          /day
+                        </span>
+                      </span>
+                      <ArrowRight className="h-5 w-5 text-primary group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+            <div className="text-center mt-12">
+              <Link
+                href="/vehicles"
+                className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-8 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+              >
+                View All Vehicles
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </>
+        ) : (
+          <div className="text-center py-12">
+            <Car className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">No vehicles available</p>
+          </div>
+        )}
+      </section>
 
-      <div>
-        <h3 className="text-xl font-bold mb-4">Quick Start</h3>
-        <ol className="list-decimal list-inside space-y-2">
-          <li>Browse our available vehicles</li>
-          <li>Select your preferred vehicle</li>
-          <li>Fill out the booking form</li>
-          <li>Receive your confirmation and tracking number</li>
-          <li>Pick up your vehicle on the scheduled date</li>
-        </ol>
-      </div> */}
+      {/* Track Booking Section */}
+      <section className="relative h-[80vh] lg:h-[66vh] min-h-[500px] flex items-center mb-0">
+        {/* Background Image with Overlay */}
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{
+            backgroundImage:
+              "url('https://images.pexels.com/photos/1557652/pexels-photo-1557652.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2')",
+          }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-l from-black/70 via-black/50 to-black/30"></div>
+        </div>
+
+        {/* Content Container */}
+        <div className="container mx-auto px-4 md:px-8 relative z-10">
+          <div className="flex flex-col lg:grid lg:grid-cols-2 gap-8 lg:items-center">
+            {/* Track Booking Info - First on Mobile, Right Side on Desktop */}
+            <div className="text-white lg:order-2 lg:ml-auto">
+              <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-4">
+                Stay Updated
+              </h2>
+              <p className="text-lg md:text-xl text-white/90 max-w-2xl mb-6">
+                Track your booking status and get real-time updates on your
+                reservation
+              </p>
+            </div>
+
+            {/* Track Booking Widget - Second on Mobile, Left Side on Desktop */}
+            <div className="w-full lg:w-[420px] lg:order-1">
+              <div className="bg-card/95 backdrop-blur border rounded-lg shadow-2xl p-6 md:p-8">
+                {/* <h2 className="text-2xl font-bold mb-6">Track Your Booking</h2> */}
+
+                <form onSubmit={handleTrackBooking}>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="bookingRef"
+                        className="text-sm font-medium flex items-center gap-2"
+                      >
+                        <Search className="h-4 w-4" />
+                        Booking Reference
+                      </label>
+                      <input
+                        type="text"
+                        id="bookingRef"
+                        name="bookingRef"
+                        placeholder="BOOK-20260104-001"
+                        className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full mt-6 inline-flex items-center justify-center gap-2 rounded-md bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  >
+                    Track Booking
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

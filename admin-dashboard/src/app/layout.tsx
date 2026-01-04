@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SASCU Fleet Rental",
+  title: "SASCU Rental",
   description: "Vehicle Rental System",
 };
 
@@ -29,7 +29,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
-        <Toaster />  
+        <Toaster />
       </body>
     </html>
   );

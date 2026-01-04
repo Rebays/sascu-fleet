@@ -8,13 +8,46 @@ const Booking = require('../models/Booking');
 const catchAsync = require('../utils/catchAsync');
 
 const getVehicles = catchAsync(async (req, res) => {
-  const vehicles = await Vehicle.find({ isAvailable: true });
+  const vehicles = await Vehicle.find();
   res.json(vehicles);
+});
+
+const searchAvailableVehicles = catchAsync(async (req, res) => {
+  const { startDate, endDate, type } = req.query;
+
+  const query = {};
+  if (type) query.type = type;
+
+  const vehicles = await Vehicle.find(query);
+
+  if (!startDate || !endDate) {
+    return res.json({
+      success: true,
+      count: vehicles.length,
+      data: vehicles,
+    });
+  }
+
+  const bookedVehicles = await Booking.find({
+    status: { $in: ["pending", "confirmed"] },
+    $or: [{ startDate: { $lt: endDate }, endDate: { $gt: startDate } }],
+  }).distinct("vehicle");
+
+  const available = vehicles.filter(
+    (v) => !bookedVehicles.some((id) => id.toString() === v._id.toString())
+  );
+
+  res.json({
+    success: true,
+    count: available.length,
+    dateRange: { startDate, endDate },
+    data: available,
+  });
 });
 
 const getVehicleById = catchAsync(async (req, res) => {
   const vehicle = await Vehicle.findById(req.params.id);
-  if (!vehicle) return res.status(404).json({ message: 'Vehicle not found' });
+  if (!vehicle) return res.status(404).json({ message: "Vehicle not found" });
   res.json(vehicle);
 });
 
@@ -110,12 +143,12 @@ const updateVehicle = catchAsync(async (req, res) => {
 
   if (!vehicle) {
     return res.status(404).json({
-      message: 'Vehicle not found',
+      message: "Vehicle not found",
     });
   }
 
   res.json({
-    message: 'Vehicle updated successfully',
+    message: "Vehicle updated successfully",
     vehicle,
   });
 });
@@ -126,7 +159,7 @@ const deleteVehicle = catchAsync(async (req, res) => {
 
   if (!vehicle) {
     return res.status(404).json({
-      message: 'Vehicle not found',
+      message: "Vehicle not found",
     });
   }
 
@@ -139,7 +172,7 @@ const deleteVehicle = catchAsync(async (req, res) => {
   // }
 
   res.json({
-    message: 'Vehicle deleted successfully',
+    message: "Vehicle deleted successfully",
     vehicle,
   });
 });

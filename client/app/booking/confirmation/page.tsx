@@ -2,55 +2,249 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import Breadcrumb from "@/components/Breadcrumb";
+import {
+  CheckCircle,
+  Info,
+  Mail,
+  Phone,
+  Clock,
+  ArrowRight,
+  FileText,
+  CreditCard,
+  Search,
+  Home,
+  Car,
+} from "lucide-react";
 
 export default function BookingConfirmationPage() {
   const searchParams = useSearchParams();
   const trackingNumber = searchParams.get("trackingNumber");
 
   return (
-    <div className="max-w-4xl mx-auto p-8">
-      <h1 className="text-3xl font-bold mb-8">Booking Confirmation</h1>
-
-      <div className="border p-6">
-        <h2 className="text-2xl font-bold mb-4">Thank You for Your Booking!</h2>
-        <p className="mb-6">Your vehicle rental has been successfully submitted.</p>
-
-        {trackingNumber && (
-          <div className="border p-4 mb-6">
-            <h3 className="text-xl font-bold mb-2">Your Tracking Number:</h3>
-            <p className="text-2xl font-mono mb-2"><strong>{trackingNumber}</strong></p>
-            <p>Please save this tracking number. You can use it to track your booking status.</p>
+    <div>
+      {/* Hero Section - Success Style */}
+      <section className="relative bg-gradient-to-br from-green-50 via-green-50/50 to-background border-b border-green-200">
+        <div className="container mx-auto px-4 md:px-8 py-16">
+          <div className="text-center">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-100 border-4 border-green-200 mb-6">
+              <CheckCircle className="h-10 w-10 text-green-600" />
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
+              Booking Confirmed!
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Thank you for choosing SASCU. Your reservation has been
+              successfully submitted.
+            </p>
           </div>
-        )}
-
-        <div className="mb-6">
-          <h3 className="text-xl font-bold mb-3">What Happens Next?</h3>
-          <ol className="list-decimal list-inside space-y-2">
-            <li>You will receive a confirmation email shortly with all booking details</li>
-            <li>Our team will review your booking and verify the information</li>
-            <li>You will receive a payment link to complete your reservation</li>
-            <li>Once payment is confirmed, you will receive your rental agreement</li>
-          </ol>
         </div>
+      </section>
 
-        <div className="mb-6">
-          <h3 className="text-xl font-bold mb-3">Need Help?</h3>
-          <p className="mb-2">If you have any questions about your booking, please contact us:</p>
-          <ul className="list-disc list-inside space-y-1">
-            <li>Email: bookings@sascufleet.com</li>
-            <li>Phone: (555) 123-4567</li>
-            <li>Hours: Monday-Friday, 8:00 AM - 6:00 PM</li>
-          </ul>
-        </div>
+      {/* Main Content */}
+      <section className="container mx-auto px-4 md:px-8 py-12">
+        <div className="max-w-3xl mx-auto">
+          {/* Breadcrumb */}
+          <div className="mb-8">
+            <Breadcrumb
+              items={[
+                { label: "Vehicles", href: "/vehicles" },
+                { label: "Complete Booking", href: "/booking" },
+                { label: "Confirmation" },
+              ]}
+            />
+          </div>
 
-        <div className="pt-6 border-t space-x-4">
-          <Link href="/" className="underline">Back to Home</Link>
-          <span>|</span>
-          <Link href="/track-booking" className="underline">Track Your Booking</Link>
-          <span>|</span>
-          <Link href="/vehicles" className="underline">Browse More Vehicles</Link>
+          {/* Tracking Number - Prominent Display */}
+          {trackingNumber && (
+            <div className="bg-gradient-to-br from-primary/10 to-primary/5 border-2 border-primary/20 rounded-lg p-8 mb-8 text-center">
+              <div className="flex items-center justify-center gap-2 mb-3">
+                <FileText className="h-6 w-6 text-primary" />
+                <h3 className="text-xl font-bold">Your Booking Reference</h3>
+              </div>
+              <div className="bg-background border border-primary/30 rounded-lg p-4 mb-4 inline-block">
+                <p className="text-3xl md:text-4xl font-mono font-bold text-primary tracking-wider">
+                  {trackingNumber}
+                </p>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Save this reference number to track your booking and manage your
+                reservation
+              </p>
+            </div>
+          )}
+
+          {/* What Happens Next - Timeline Style */}
+          <div className="bg-card border rounded-lg p-8 mb-8">
+            <div className="flex items-center gap-2 mb-6">
+              <Info className="h-6 w-6 text-primary" />
+              <h3 className="text-2xl font-bold">What Happens Next?</h3>
+            </div>
+            <div className="space-y-4">
+              <div className="flex gap-4">
+                <div className="flex flex-col items-center">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 border-2 border-primary flex items-center justify-center flex-shrink-0">
+                    <span className="text-sm font-bold text-primary">1</span>
+                  </div>
+                  <div className="w-0.5 h-full bg-primary/20 mt-2"></div>
+                </div>
+                <div className="pb-6">
+                  <h4 className="font-semibold mb-1 flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-primary" />
+                    Confirmation Email
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    You&apos;ll receive a confirmation email with all booking
+                    details within minutes
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <div className="flex flex-col items-center">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 border-2 border-primary flex items-center justify-center flex-shrink-0">
+                    <span className="text-sm font-bold text-primary">2</span>
+                  </div>
+                  <div className="w-0.5 h-full bg-primary/20 mt-2"></div>
+                </div>
+                <div className="pb-6">
+                  <h4 className="font-semibold mb-1 flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-primary" />
+                    Booking Review
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    Our team will review and verify your reservation details
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <div className="flex flex-col items-center">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 border-2 border-primary flex items-center justify-center flex-shrink-0">
+                    <span className="text-sm font-bold text-primary">3</span>
+                  </div>
+                  <div className="w-0.5 h-full bg-primary/20 mt-2"></div>
+                </div>
+                <div className="pb-6">
+                  <h4 className="font-semibold mb-1 flex items-center gap-2">
+                    <CreditCard className="h-4 w-4 text-primary" />
+                    Payment Link
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    You&apos;ll receive a secure payment link to complete your
+                    reservation
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <div className="flex flex-col items-center">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 border-2 border-primary flex items-center justify-center flex-shrink-0">
+                    <span className="text-sm font-bold text-primary">4</span>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-1 flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-primary" />
+                    Rental Agreement
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    Once payment is confirmed, you&apos;ll receive your rental
+                    agreement
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Contact Information */}
+          <div className="bg-card border rounded-lg p-8 mb-8">
+            <div className="flex items-center gap-2 mb-6">
+              <Phone className="h-6 w-6 text-primary" />
+              <h3 className="text-2xl font-bold">Need Assistance?</h3>
+            </div>
+            <p className="text-muted-foreground mb-6">
+              Our team is here to help with any questions about your booking
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="flex items-start gap-3 p-4 bg-muted/20 rounded-lg border">
+                <Mail className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold text-sm mb-1">Email</p>
+                  <p className="text-sm text-muted-foreground">
+                    bookings@sascufleet.com
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 p-4 bg-muted/20 rounded-lg border">
+                <Phone className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold text-sm mb-1">Phone</p>
+                  <p className="text-sm text-muted-foreground">
+                    (555) 123-4567
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 p-4 bg-muted/20 rounded-lg border">
+                <Clock className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold text-sm mb-1">Hours</p>
+                  <p className="text-sm text-muted-foreground">
+                    Mon-Fri, 8AM - 6PM
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Actions */}
+          <div className="bg-gradient-to-br from-muted/40 via-muted/20 to-background border rounded-lg p-8">
+            <h3 className="text-xl font-bold mb-6 text-center">
+              What would you like to do next?
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Link
+                href="/track-booking"
+                className="group flex flex-col items-center gap-3 p-6 bg-card border rounded-lg transition-all hover:shadow-md hover:border-primary/50"
+              >
+                <div className="text-center">
+                  <h4 className="font-semibold mb-1">Track Booking</h4>
+                  <p className="text-xs text-muted-foreground">
+                    Check your booking status
+                  </p>
+                </div>
+                <ArrowRight className="h-4 w-4 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+              </Link>
+
+              <Link
+                href="/vehicles"
+                className="group flex flex-col items-center gap-3 p-6 bg-card border rounded-lg transition-all hover:shadow-md hover:border-primary/50"
+              >
+                <div className="text-center">
+                  <h4 className="font-semibold mb-1">Browse Vehicles</h4>
+                  <p className="text-xs text-muted-foreground">
+                    Explore more options
+                  </p>
+                </div>
+                <ArrowRight className="h-4 w-4 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+              </Link>
+
+              <Link
+                href="/"
+                className="group flex flex-col items-center gap-3 p-6 bg-card border rounded-lg transition-all hover:shadow-md hover:border-primary/50"
+              >
+                <div className="text-center">
+                  <h4 className="font-semibold mb-1">Back to Home</h4>
+                  <p className="text-xs text-muted-foreground">
+                    Return to homepage
+                  </p>
+                </div>
+                <ArrowRight className="h-4 w-4 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+              </Link>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

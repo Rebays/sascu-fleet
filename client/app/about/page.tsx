@@ -1,134 +1,216 @@
 import Link from "next/link";
+import {
+  MapPin,
+  Phone,
+  Mail,
+  Clock,
+  Info,
+  HelpCircle,
+  CheckCircle,
+  Car,
+  Shield,
+  Headphones,
+  DollarSign,
+  Users,
+  Award,
+  TrendingUp,
+  Zap,
+  Heart,
+  Target,
+  ArrowRight,
+} from "lucide-react";
+import Breadcrumb from "@/components/Breadcrumb";
 
 export default function AboutPage() {
   return (
-    <div className="max-w-5xl mx-auto p-8">
-      <h1 className="text-3xl font-bold mb-4">About SASCU Fleet</h1>
-      <Link href="/" className="underline mb-8 inline-block">Back to Home</Link>
+    <div className="-mt-16 lg:-mt-[88px]">
+      {/* Hero Section with Background Image */}
+      <section className="relative h-[calc(50vh+64px)] lg:h-[calc(50vh+88px)] min-h-[464px] lg:min-h-[488px] flex items-center pt-16 lg:pt-24">
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{
+            backgroundImage:
+              "url('https://images.pexels.com/photos/492510/pexels-photo-492510.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2')",
+          }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/40"></div>
+        </div>
+        <div className="container mx-auto px-4 md:px-8 relative z-10">
+          <div className="max-w-3xl">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-4 text-white">
+              SASCU
+            </h1>
+            <p className="text-lg md:text-xl text-white/90 max-w-2xl">
+              INSERT TAGLINE HERE
+            </p>
+          </div>
+        </div>
+      </section>
 
-      <div>
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-3">Who We Are</h2>
-          <p>
-            SASCU Fleet is a premier vehicle rental service dedicated to providing quality vehicles
-            and exceptional customer service. With over 10 years of experience in the industry,
-            we have built a reputation for reliability, affordability, and customer satisfaction.
+      {/* Main Content */}
+      <section className="container mx-auto px-4 md:px-8 py-16">
+        {/* Breadcrumb */}
+        <div className="mb-12">
+          <Breadcrumb items={[{ label: "About" }]} />
+        </div>
+
+        {/* Our Story */}
+        <div className="mb-20">
+          <div className="max-w-4xl mx-auto text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Our Story</h2>
+            <p className="text-lg text-muted-foreground">
+              From humble beginnings to becoming your trusted mobility partner
+            </p>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div className="space-y-6">
+              <div className="flex gap-4">
+                <div className="flex-shrink-0">
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Target className="h-6 w-6 text-primary" />
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold mb-2">Our Mission</h3>
+                  <p className="text-muted-foreground">
+                    To make vehicle rental simple, affordable, and accessible to
+                    everyone. We provide a diverse fleet that meets the needs of
+                    both individual and business customers.
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <div className="flex-shrink-0">
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Heart className="h-6 w-6 text-primary" />
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold mb-2">Our Values</h3>
+                  <p className="text-muted-foreground">
+                    Integrity, reliability, and customer satisfaction drive
+                    everything we do. We're committed to transparency, quality
+                    service, and building lasting relationships.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-gradient-to-br from-primary/20 to-primary/5 rounded-2xl p-8 border border-primary/20">
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <Award className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
+                  <div>
+                    <h4 className="font-semibold mb-1">Industry Recognition</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Awarded Best Fleet Service 2023
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Users className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
+                  <div>
+                    <h4 className="font-semibold mb-1">Customer First</h4>
+                    <p className="text-sm text-muted-foreground">
+                      5,000+ satisfied customers and counting
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <TrendingUp className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
+                  <div>
+                    <h4 className="font-semibold mb-1">Growing Fleet</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Continuously expanding our vehicle selection
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Contact Information - Improved Layout */}
+        <div className="mb-12">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold mb-2">Get In Touch</h2>
+            <p className="text-muted-foreground">
+              We&apos;re here to help with all your rental needs
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="bg-card border rounded-lg p-6">
+              <div className="flex items-center gap-2 mb-3">
+                <MapPin className="h-5 w-5 text-primary" />
+                <h3 className="font-bold">Main Office</h3>
+              </div>
+              <p className="text-sm text-muted-foreground">123 Fleet Street</p>
+              <p className="text-sm text-muted-foreground">Downtown District</p>
+              <p className="text-sm text-muted-foreground">City, State 12345</p>
+            </div>
+
+            <div className="bg-card border rounded-lg p-6">
+              <div className="flex items-center gap-2 mb-3">
+                <Phone className="h-5 w-5 text-primary" />
+                <h3 className="font-bold">Phone</h3>
+              </div>
+              <p className="text-sm text-muted-foreground mb-1">
+                General: (555) 123-4567
+              </p>
+              <p className="text-sm text-muted-foreground mb-1">
+                Bookings: (555) 123-4568
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Support: (555) 123-4569
+              </p>
+            </div>
+
+            <div className="bg-card border rounded-lg p-6">
+              <div className="flex items-center gap-2 mb-3">
+                <Mail className="h-5 w-5 text-primary" />
+                <h3 className="font-bold">Email</h3>
+              </div>
+              <p className="text-sm text-muted-foreground mb-1">
+                info@sascufleet.com
+              </p>
+              <p className="text-sm text-muted-foreground mb-1">
+                bookings@sascufleet.com
+              </p>
+              <p className="text-sm text-muted-foreground">
+                support@sascufleet.com
+              </p>
+            </div>
+
+            <div className="bg-card border rounded-lg p-6">
+              <div className="flex items-center gap-2 mb-3">
+                <Clock className="h-5 w-5 text-primary" />
+                <h3 className="font-bold">Hours</h3>
+              </div>
+              <p className="text-sm text-muted-foreground mb-1">
+                Mon-Fri: 8AM - 6PM
+              </p>
+              <p className="text-sm text-muted-foreground mb-1">
+                Sat: 9AM - 5PM
+              </p>
+              <p className="text-sm text-muted-foreground">Sun: 10AM - 4PM</p>
+            </div>
+          </div>
+        </div>
+
+        {/* CTA Section */}
+        <div className="text-center bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 rounded-lg p-8">
+          <h3 className="text-2xl font-bold mb-3">Ready to Get Started?</h3>
+          <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
+            Browse our fleet and book your perfect vehicle today
           </p>
+          <Link
+            href="/vehicles"
+            className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            Browse Vehicles
+          </Link>
         </div>
-
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-3">Our Mission</h2>
-          <p>
-            Our mission is to make vehicle rental simple, affordable, and accessible to everyone.
-            We strive to provide a diverse fleet of well-maintained vehicles that meet the needs
-            of both individual and business customers.
-          </p>
-        </div>
-
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-3">Why Choose Us?</h2>
-          <ul className="list-disc list-inside space-y-2">
-            <li>Wide selection of vehicles from economy to luxury</li>
-            <li>Competitive pricing with no hidden fees</li>
-            <li>24/7 customer support</li>
-            <li>Flexible rental periods</li>
-            <li>Multiple pickup and drop-off locations</li>
-            <li>Well-maintained and regularly serviced vehicles</li>
-            <li>Easy online booking process</li>
-          </ul>
-        </div>
-
-        <div className="border p-6 mb-8">
-          <h2 className="text-2xl font-bold mb-6">Contact Information</h2>
-
-          <div className="mb-6">
-            <h3 className="text-xl font-bold mb-2">Main Office</h3>
-            <p>123 Fleet Street</p>
-            <p>Downtown District</p>
-            <p>City, State 12345</p>
-          </div>
-
-          <div className="mb-6">
-            <h3 className="text-xl font-bold mb-2">Phone</h3>
-            <p>General Inquiries: (555) 123-4567</p>
-            <p>Bookings: (555) 123-4568</p>
-            <p>Support: (555) 123-4569</p>
-          </div>
-
-          <div className="mb-6">
-            <h3 className="text-xl font-bold mb-2">Email</h3>
-            <p>General: info@sascufleet.com</p>
-            <p>Bookings: bookings@sascufleet.com</p>
-            <p>Support: support@sascufleet.com</p>
-          </div>
-
-          <div className="mb-6">
-            <h3 className="text-xl font-bold mb-2">Business Hours</h3>
-            <p>Monday - Friday: 8:00 AM - 6:00 PM</p>
-            <p>Saturday: 9:00 AM - 5:00 PM</p>
-            <p>Sunday: 10:00 AM - 4:00 PM</p>
-            <p>Holidays: Closed (Emergency support available)</p>
-          </div>
-
-          <div className="mb-6">
-            <h3 className="text-xl font-bold mb-2">Other Locations</h3>
-            <ul className="space-y-4">
-              <li className="border p-4">
-                <strong className="block mb-1">Airport Branch</strong>
-                <p>Terminal 2, Arrivals Hall</p>
-                <p>Open 24/7</p>
-              </li>
-              <li className="border p-4">
-                <strong className="block mb-1">North Side Location</strong>
-                <p>456 North Avenue</p>
-                <p>Mon-Sat: 9:00 AM - 6:00 PM</p>
-              </li>
-              <li className="border p-4">
-                <strong className="block mb-1">South Side Location</strong>
-                <p>789 South Boulevard</p>
-                <p>Mon-Sat: 9:00 AM - 6:00 PM</p>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="text-xl font-bold mb-2">Get in Touch</h3>
-            <p className="mb-1">Have questions or need assistance? We&apos;re here to help!</p>
-            <p>You can reach us through any of the contact methods above, or visit us at one of our locations.</p>
-          </div>
-        </div>
-
-        <div>
-          <h2 className="text-2xl font-bold mb-6">Frequently Asked Questions</h2>
-
-          <div className="space-y-6">
-            <div className="border p-4">
-              <h4 className="font-bold mb-2">What do I need to rent a vehicle?</h4>
-              <p>You need a valid driver license, a credit/debit card, and proof of insurance.</p>
-            </div>
-
-            <div className="border p-4">
-              <h4 className="font-bold mb-2">What is the minimum rental period?</h4>
-              <p>Our minimum rental period is 24 hours (1 day).</p>
-            </div>
-
-            <div className="border p-4">
-              <h4 className="font-bold mb-2">Can I return the vehicle to a different location?</h4>
-              <p>Yes, we offer one-way rentals. Additional fees may apply.</p>
-            </div>
-
-            <div className="border p-4">
-              <h4 className="font-bold mb-2">What is your cancellation policy?</h4>
-              <p>Free cancellation up to 24 hours before pickup. Cancellations within 24 hours may incur a fee.</p>
-            </div>
-
-            <div className="border p-4">
-              <h4 className="font-bold mb-2">Do you offer insurance?</h4>
-              <p>Yes, we offer comprehensive insurance coverage. You can also use your own insurance if it covers rental vehicles.</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      </section>
     </div>
   );
 }
