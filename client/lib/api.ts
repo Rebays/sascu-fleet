@@ -253,6 +253,9 @@ interface BackendBookingData {
     year: number;
     licensePlate: string;
     location: string;
+    images?: string[];
+    pricePerDay?: number;
+    pricePerHour?: number;
   };
   startDate: string;
   endDate: string;
@@ -275,6 +278,9 @@ export interface TrackingResponse {
       year: number;
       licensePlate: string;
       location: string;
+      images?: string[];
+      pricePerDay?: number;
+      pricePerHour?: number;
     };
     customer: {
       name: string;
@@ -373,6 +379,9 @@ export async function trackBooking(
           year: backendResponse.data.vehicle.year,
           licensePlate: backendResponse.data.vehicle.licensePlate,
           location: backendResponse.data.vehicle.location,
+          images: backendResponse.data.vehicle.images,
+          pricePerDay: backendResponse.data.vehicle.pricePerDay,
+          pricePerHour: backendResponse.data.vehicle.pricePerHour,
         },
         customer: {
           name: backendResponse.data.user.name,
