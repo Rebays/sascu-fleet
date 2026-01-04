@@ -45,12 +45,12 @@ const VehicleIcon = ({ type }: { type: string }) => {
 // Helper function to get the full image URL
 const getImageUrl = (imagePath: string): string => {
   // If it's already a full URL, return as-is
-  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+  if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
     return imagePath;
   }
   // Otherwise, construct URL using backend base URL
-  const baseUrl = API_URL.replace('/api', '');
-  return `${baseUrl}${imagePath.startsWith('/') ? '' : '/'}${imagePath}`;
+  const baseUrl = API_URL.replace("/api", "");
+  return `${baseUrl}${imagePath.startsWith("/") ? "" : "/"}${imagePath}`;
 };
 
 export default function VehicleDetailsPage({
@@ -91,7 +91,7 @@ export default function VehicleDetailsPage({
         ]);
 
         setVehicle(vehicleData);
-        setBookedDates(bookedDatesData.data?.bookedDates || []);
+        setBookedDates(bookedDatesData.data || []);
       } catch (err: any) {
         setError(err.message || "Failed to load vehicle");
         setVehicle(null);

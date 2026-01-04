@@ -416,14 +416,7 @@ export interface BookedDate {
 
 export interface BookedDatesResponse {
   success: boolean;
-  data: {
-    vehicleId: string;
-    dateRange: {
-      from: string;
-      to: string;
-    };
-    bookedDates: BookedDate[];
-  };
+  data: BookedDate[];
 }
 
 export async function getBookedDates(
