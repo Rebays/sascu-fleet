@@ -196,23 +196,23 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
 
           {/* Invoice Summary */}
           <Card className="p-8 bg-linear-to-br from-blue-50 to-indigo-50 border-blue-200">
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
-              <FileText className="w-8 h-8 text-blue-700" />
+            <h2 className="text-2xl font-bold mb-6 flex items-center gap-3 dark:text-slate-800">
+              <FileText className="w-8 h-8 text-blue-700 dark:text-slate-800" />
               Invoice Summary
             </h2>
 
             <div className="space-y-4 text-lg">
               <div className="flex justify-between">
-                <span>Total Amount</span>
-                <span className="font-bold">SBD{booking.totalPrice.toLocaleString()}</span>
+                <span className="dark:text-slate-800">Total Amount</span>
+                <span className="font-bold dark:text-slate-800">SBD{booking.totalPrice.toLocaleString()}</span>
               </div>
-              <div className="flex justify-between text-green-700">
+              <div className="flex justify-between text-green-700 dark:text-green-600">
                 <span>Deposit Paid</span>
                 <span className="font-bold">- SBD{(booking.deposit || 0).toLocaleString()}</span>
               </div>
               <Separator />
-              <div className="flex justify-between text-2xl font-bold text-indigo-700">
-                <span>Balance Due</span>
+              <div className="flex justify-between text-2xl font-bold text-indigo-700 dark:text-indigo-600">
+                <span>Balance Due</span> 
                 <span>SBD{(booking.totalPrice - (booking.deposit || 0)).toLocaleString()}</span>
               </div>
             </div>

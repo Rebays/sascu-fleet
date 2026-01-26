@@ -113,14 +113,14 @@ export default function DashboardPage() {
     return (
       <div className="p-8 flex flex-col items-center justify-center min-h-[60vh]">
         <Loader className="w-10 h-10 animate-spin text-blue-600 mb-4" />
-        <p className="text-gray-600">Loading dashboard...</p>
+        <p className="text-gray-600 dark:text-slate-400">Loading dashboard...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="p-8 text-center text-red-600">
+      <div className="p-8 text-center text-red-600 dark:text-red-400">
         Failed to load dashboard data. Please try again.
       </div>
     );
@@ -131,8 +131,8 @@ export default function DashboardPage() {
       {/* Header + Date Filter */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Dashboard</h1>
+          <p className="text-gray-600 dark:text-slate-400 mt-1">
             {format(new Date(dateRange.start), 'MMM dd, yyyy')} –{' '}
             {format(new Date(dateRange.end), 'MMM dd, yyyy')}
           </p>
@@ -141,7 +141,7 @@ export default function DashboardPage() {
         <div className="flex flex-col sm:flex-row gap-4 items-end">
           <div className="grid grid-cols-2 gap-4 w-full sm:w-auto">
             <div>
-              <Label htmlFor="start">Start Date</Label>
+              <Label htmlFor="start" className="text-gray-700 dark:text-slate-300">Start Date</Label>
               <Input
                 id="start"
                 type="date"
@@ -149,11 +149,11 @@ export default function DashboardPage() {
                 value={dateRange.start}
                 onChange={handleDateChange}
                 max={dateRange.end}
-                className="mt-1"
+                className="mt-1 bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 text-gray-900 dark:text-white dark:text-slate-200"
               />
             </div>
             <div>
-              <Label htmlFor="end">End Date</Label>
+              <Label htmlFor="end" className="text-gray-700 dark:text-slate-300">End Date</Label>
               <Input
                 id="end"
                 type="date"
@@ -162,7 +162,7 @@ export default function DashboardPage() {
                 onChange={handleDateChange}
                 min={dateRange.start}
                 max={format(today, 'yyyy-MM-dd')}
-                className="mt-1"
+                className="mt-1 bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 text-gray-900 dark:text-white"
               />
             </div>
           </div>
@@ -176,11 +176,12 @@ export default function DashboardPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Cards remain the same structure, Card component now handles dark mode */}
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-muted-foreground">Total Revenue</p>
-              <p className="text-3xl font-bold mt-2">
+              <p className="text-sm text-gray-600 dark:text-slate-400">Total Revenue</p>
+              <p className="text-3xl font-bold mt-2 text-gray-900 dark:text-white">
                 SBD{stats?.data.totalRevenue?.toLocaleString() || '0'}
               </p>
             </div>
@@ -191,8 +192,8 @@ export default function DashboardPage() {
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-muted-foreground">Today's Revenue</p>
-              <p className="text-3xl font-bold mt-2">
+              <p className="text-sm text-gray-600 dark:text-slate-400">Today's Revenue</p>
+              <p className="text-3xl font-bold mt-2 text-gray-900 dark:text-white">
                 SBD{stats?.data.todayRevenue?.toLocaleString() || '0'}
               </p>
             </div>
@@ -203,8 +204,8 @@ export default function DashboardPage() {
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-muted-foreground">Total Bookings</p>
-              <p className="text-3xl font-bold mt-2">{stats?.totalBookings || 0}</p>
+              <p className="text-sm text-gray-600 dark:text-slate-400">Total Bookings</p>
+              <p className="text-3xl font-bold mt-2 text-gray-900 dark:text-white">{stats?.totalBookings || 0}</p>
             </div>
             <Calendar className="w-10 h-10 text-purple-600 opacity-20" />
           </div>
@@ -213,18 +214,17 @@ export default function DashboardPage() {
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-muted-foreground">Active Vehicles</p>
-              <p className="text-3xl font-bold mt-2">{stats?.data.activeVehicles || 0}</p>
+              <p className="text-sm text-gray-600 dark:text-slate-400">Active Vehicles</p>
+              <p className="text-3xl font-bold mt-2 text-gray-900 dark:text-white">{stats?.data.activeVehicles || 0}</p>
             </div>
             <Car className="w-10 h-10 text-amber-600 opacity-20" />
           </div>
         </Card>
 
-        {/* New metrics */}
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-muted-foreground">Pending Bookings</p>
+              <p className="text-sm text-gray-600 dark:text-slate-400">Pending Bookings</p>
               <p className="text-3xl font-bold mt-2 text-amber-600">
                 {stats?.data.pendingBookings || 0}
               </p>
@@ -236,7 +236,7 @@ export default function DashboardPage() {
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-muted-foreground">Paid Bookings</p>
+              <p className="text-sm text-gray-600 dark:text-slate-400">Paid Bookings</p>
               <p className="text-3xl font-bold mt-2 text-green-600">
                 {stats?.paidBookings || 0}
               </p>
@@ -248,7 +248,7 @@ export default function DashboardPage() {
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-muted-foreground">Need Approval</p>
+              <p className="text-sm text-gray-600 dark:text-slate-400">Need Approval</p>
               <p className="text-3xl font-bold mt-2 text-red-600">
                 {stats?.data.bookingsNeedApproval || 0}
               </p>
@@ -262,16 +262,17 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Revenue Over Time */}
         <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Revenue Over Time</h3>
+          <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Revenue Over Time</h3>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={revenueData     }>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis dataKey="date" stroke="#6b7280" />
-                <YAxis stroke="#6b7280" />
+              <LineChart data={revenueData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" className="dark:stroke-slate-700" />
+                <XAxis dataKey="date" stroke="#6b7280" className="dark:stroke-slate-500" />
+                <YAxis stroke="#6b7280" className="dark:stroke-slate-500" />
                 <Tooltip
                   formatter={(value: number) => [`SBD${value.toLocaleString()}`, 'Revenue']}
-                  contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb' }}
+                  contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', color: '#000' }}
+                  wrapperStyle={{ outline: 'none' }}
                 />
                 <Legend />
                 <Line
@@ -289,16 +290,17 @@ export default function DashboardPage() {
 
         {/* Bookings by Status */}
         <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Bookings by Status</h3>
+          <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Bookings by Status</h3>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={bookingsByStatus}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis dataKey="name" stroke="#6b7280" />
-                <YAxis stroke="#6b7280" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" className="dark:stroke-slate-700" />
+                <XAxis dataKey="name" stroke="#6b7280" className="dark:stroke-slate-500" />
+                <YAxis stroke="#6b7280" className="dark:stroke-slate-500" />
                 <Tooltip
                   formatter={(value: number) => [`${value} bookings`, 'Count']}
-                  contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb' }}
+                  contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', color: '#000' }}
+                  wrapperStyle={{ outline: 'none' }}
                 />
                 <Legend />
                 <Bar dataKey="value" fill="#8b5cf6" radius={[4, 4, 0, 0]} />

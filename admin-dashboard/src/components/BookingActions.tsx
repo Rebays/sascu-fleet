@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DollarSign, Mail, Printer, CreditCard, Banknote, Loader2, Receipt } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 import { useSWRConfig } from 'swr';
 
 interface BookingActionsProps {
@@ -118,9 +118,9 @@ export default function BookingActions({ booking, onPaymentRecorded }: BookingAc
   return (
     <>
       {/* Action Buttons */}
-      <div className="flex gap-4 mt-8 print:hidden">
-        <Button onClick={() => setPaymentOpen(true)} className="flex">
-          <DollarSign className="w-5 h-5 mr-2" />
+      <div className="flex gap-2 mt-8 print:hidden">
+        <Button onClick={() => setPaymentOpen(true)} className=" flex">
+          <DollarSign className="w-5 h-5" />
           Record Payment
         </Button>
         <Button variant="outline" onClick={() => setInvoiceOpen(true)} className="flex">

@@ -367,7 +367,7 @@ export default function AdminBookingsPage() {
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-xl font-semibold text-blue-900">Bookings ({filtered.length})</h1>
+        <h1 className="text-xl font-semibold text-blue-900 dark:text-slate-400">Bookings ({filtered.length})</h1>
         <div className="flex items-center gap-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
