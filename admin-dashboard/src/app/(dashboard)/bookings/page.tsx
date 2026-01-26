@@ -96,22 +96,38 @@ export default function AdminBookingsPage() {
   const [newUserEmail, setNewUserEmail] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState('');
-
+  const [statusFilter, setStatusFilter] = useState('all'); // ← NEW: status filter
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [bookingToDelete, setBookingToDelete] = useState<any>(null);
 
-  //search functionality
+  
+ // Combined filter: search + status
   const filtered = useMemo(() => {
-    if (!search) return bookings;
-    const lower = search.toLowerCase();
-    return bookings.filter((b: any) =>
-      b.bookingRef.toLowerCase().includes(lower) ||
-      b.user?.name?.toLowerCase().includes(lower) ||
-      b.user?.email?.toLowerCase().includes(lower) ||
-      b.vehicle?.make?.toLowerCase().includes(lower) ||
-      b.vehicle?.model?.toLowerCase().includes(lower)
-    );
-  }, [bookings, search]);
+    let list = bookings;
+
+    // Search filter
+    if (search) {
+      const lower = search.toLowerCase();
+      list = list.filter((b: any) =>
+        b.bookingRef?.toLowerCase().includes(lower) ||
+        b.user?.name?.toLowerCase().includes(lower) ||
+        b.user?.email?.toLowerCase().includes(lower) ||
+        b.vehicle?.make?.toLowerCase().includes(lower) ||
+        b.vehicle?.model?.toLowerCase().includes(lower)
+      );
+    }
+
+    // Status filter
+    if (statusFilter !== 'all') {
+      if (statusFilter === 'paid') {
+        list = list.filter((b: any) => b.paymentStatus === 'paid');
+      } else {
+        list = list.filter((b: any) => b.status === statusFilter);
+      }
+    }
+
+    return list;
+  }, [bookings, search, statusFilter]);
 
   //pagination
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
@@ -362,6 +378,22 @@ export default function AdminBookingsPage() {
               className="pl-10 w-96"
             />
           </div>
+          {/* Status Filter */}
+          <Select value={statusFilter} onValueChange={(val) => {
+            setStatusFilter(val);
+            setCurrentPage(1);
+          }}>
+            <SelectTrigger className="w-44">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Bookings</SelectItem>
+              <SelectItem value="pending">Awaiting Approval</SelectItem>
+              <SelectItem value="confirmed">Confirmed</SelectItem>
+              <SelectItem value="cancelled">Cancelled</SelectItem>
+              <SelectItem value="paid">Paid</SelectItem>
+            </SelectContent>
+          </Select>
           {/* View Toggle */}
           <div className="flex rounded-lg ">
             <Button
