@@ -53,17 +53,19 @@ export default function DashboardPage() {
     fetcher
   );
 
+  console.log(stats);
+
   // Chart data preparation
   const revenueData = useMemo(() => {
-    return stats?.dailyRevenue?.map((item: any) => ({
+    return stats?.data.dailyRevenue?.map((item: any) => ({
       date: format(new Date(item.date), 'MMM dd'),
       revenue: item.amount,
     })) || [];
   }, [stats]);
 
   const bookingsByStatus = useMemo(() => {
-    return stats?.bookingsByStatus
-      ? Object.entries(stats.bookingsByStatus).map(([status, count]) => ({
+    return stats?.data.bookingsByStatus
+      ? Object.entries(stats.data.bookingsByStatus).map(([status, count]) => ({
           name: status.charAt(0).toUpperCase() + status.slice(1),
           value: count,
         }))
@@ -85,13 +87,13 @@ export default function DashboardPage() {
     // Summary sheet
     const summaryData = [
       ['Metric', 'Value'],
-      ['Total Revenue', `SBD${stats.totalRevenue?.toLocaleString() || '0'}`],
-      ["Today's Revenue", `SBD${stats.todayRevenue?.toLocaleString() || '0'}`],
-      ['Total Bookings', stats.totalBookings || 0],
-      ['Active Vehicles', stats.activeVehicles || 0],
-      ['Pending Bookings', stats.pendingBookings || 0],
-      ['Paid Bookings', stats.paidBookings || 0],
-      ['Bookings Need Approval', stats.bookingsNeedApproval || 0],
+      ['Total Revenue', `SBD${stats.data.totalRevenue?.toLocaleString() || '0'}`],
+      ["Today's Revenue", `SBD${stats.data.todayRevenue?.toLocaleString() || '0'}`],
+      ['Total Bookings', stats.data.totalBookings || 0],
+      ['Active Vehicles', stats.data.activeVehicles || 0],
+      ['Pending Bookings', stats.data.pendingBookings || 0],
+      ['Paid Bookings', stats.data.paidBookings || 0],
+      ['Bookings Need Approval', stats.data.bookingsNeedApproval || 0],
       ['Date Range', `${dateRange.start} to ${dateRange.end}`],
     ];
     const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
@@ -165,8 +167,8 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <Button onClick={exportToExcel} variant="outline" className="w-full sm:w-auto">
-            <Download className="w-4 h-4 mr-2" />
+          <Button onClick={exportToExcel} variant="default" className="flex w-full sm:w-auto">
+            <Download className="w-4 h-4 mr-2 mt-1" />
             Export Excel
           </Button>
         </div>
@@ -179,7 +181,7 @@ export default function DashboardPage() {
             <div>
               <p className="text-sm text-muted-foreground">Total Revenue</p>
               <p className="text-3xl font-bold mt-2">
-                SBD{stats?.totalRevenue?.toLocaleString() || '0'}
+                SBD{stats?.data.totalRevenue?.toLocaleString() || '0'}
               </p>
             </div>
             <DollarSign className="w-10 h-10 text-green-600 opacity-20" />
@@ -191,7 +193,7 @@ export default function DashboardPage() {
             <div>
               <p className="text-sm text-muted-foreground">Today's Revenue</p>
               <p className="text-3xl font-bold mt-2">
-                SBD{stats?.todayRevenue?.toLocaleString() || '0'}
+                SBD{stats?.data.todayRevenue?.toLocaleString() || '0'}
               </p>
             </div>
             <TrendingUp className="w-10 h-10 text-blue-600 opacity-20" />
@@ -212,7 +214,7 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Active Vehicles</p>
-              <p className="text-3xl font-bold mt-2">{stats?.activeVehicles || 0}</p>
+              <p className="text-3xl font-bold mt-2">{stats?.data.activeVehicles || 0}</p>
             </div>
             <Car className="w-10 h-10 text-amber-600 opacity-20" />
           </div>
@@ -224,7 +226,7 @@ export default function DashboardPage() {
             <div>
               <p className="text-sm text-muted-foreground">Pending Bookings</p>
               <p className="text-3xl font-bold mt-2 text-amber-600">
-                {stats?.pendingBookings || 0}
+                {stats?.data.pendingBookings || 0}
               </p>
             </div>
             <Clock className="w-10 h-10 text-amber-600 opacity-20" />
@@ -248,7 +250,7 @@ export default function DashboardPage() {
             <div>
               <p className="text-sm text-muted-foreground">Need Approval</p>
               <p className="text-3xl font-bold mt-2 text-red-600">
-                {stats?.bookingsNeedApproval || 0}
+                {stats?.data.bookingsNeedApproval || 0}
               </p>
             </div>
             <AlertCircle className="w-10 h-10 text-red-600 opacity-20" />
@@ -261,9 +263,9 @@ export default function DashboardPage() {
         {/* Revenue Over Time */}
         <Card className="p-6">
           <h3 className="text-lg font-semibold mb-4">Revenue Over Time</h3>
-          <div className="h-[320px]">
+          <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={revenueData}>
+              <LineChart data={revenueData     }>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis dataKey="date" stroke="#6b7280" />
                 <YAxis stroke="#6b7280" />
@@ -288,7 +290,7 @@ export default function DashboardPage() {
         {/* Bookings by Status */}
         <Card className="p-6">
           <h3 className="text-lg font-semibold mb-4">Bookings by Status</h3>
-          <div className="h-[320px]">
+          <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={bookingsByStatus}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />

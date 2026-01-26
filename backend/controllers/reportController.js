@@ -6,53 +6,110 @@ const csv = require("fast-csv");
 const moment = require("moment");
 
 const getDashboard = catchAsync(async (req, res) => {
-  const totalBookings = await Booking.countDocuments();
-  const confirmedBookings = await Booking.countDocuments({
-    status: "confirmed",
-  });
-  const totalVehicles = await Vehicle.countDocuments();
 
-  // Calculate available vehicles by checking which ones don't have active bookings
-  const now = new Date();
-  const activeBookings = await Booking.find({
-    status: { $in: ["pending", "confirmed"] },
-    startDate: { $lte: now },
-    endDate: { $gte: now },
-  }).distinct("vehicle");
+  const { start, end } = req.query;
 
-  const availableVehicles = totalVehicles - activeBookings.length;
+  // Date range (default last 30 days)
+  const endDate = end ? new Date(end) : new Date();
+  const startDate = start ? new Date(start) : new Date(endDate);
+  startDate.setHours(0, 0, 0, 0);
+  endDate.setHours(23, 59, 59, 999);
 
-  const revenueResult = await Payment.aggregate([
-    { $match: { status: "succeeded" } },
+  const dateMatch = {
+    createdAt: { $gte: startDate, $lte: endDate },
+  };
+
+  // 1. Total Revenue (all succeeded payments in range)
+  const totalRevenueResult = await Payment.aggregate([
+    { $match: { ...dateMatch, status: "succeeded" } },
     { $group: { _id: null, total: { $sum: "$amount" } } },
   ]);
-  const totalRevenue = revenueResult[0]?.total || 0;
+  totalRevenue = totalRevenueResult[0]?.total || 0;
 
-  // Today's revenue
-  const today = moment().startOf("day");
-  const todayRevenue = await Payment.aggregate([
+  // 2. Today's Revenue
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const todayEnd = new Date();
+  todayEnd.setHours(23, 59, 59, 999);
+
+  const todayRevenueResult = await Payment.aggregate([
     {
       $match: {
         status: "succeeded",
-        createdAt: { $gte: today.toDate() },
+        createdAt: { $gte: todayStart, $lte: todayEnd },
       },
     },
     { $group: { _id: null, total: { $sum: "$amount" } } },
   ]);
+  todayRevenue = todayRevenueResult[0]?.total || 0;
+
+
+  // 3. Total Bookings in range
+  const totalBookings = await Booking.countDocuments(dateMatch);
+
+  
+  // 4. Active Vehicles (vehicles with at least one booking in range)
+  const activeVehiclesResult = await Booking.distinct("vehicle", dateMatch);
+  const totalVehicles = await Vehicle.countDocuments();
+  const activeVehicles = activeVehiclesResult.length;
+
+  // 5. Pending Bookings
+  const pendingBookings = await Booking.countDocuments({
+    ...dateMatch,
+    status: "pending",
+  });
+
+  // 6. Paid Bookings
+  const paidBookings = await Booking.countDocuments({
+    ...dateMatch,
+    paymentStatus: "paid",
+  });
+
+  // 7. Bookings Need Approval (usually same as pending)
+  const bookingsNeedApproval = pendingBookings;
+
+ // 8. Daily Revenue (for line chart)
+  const dailyRevenue = await Payment.aggregate([
+    { $match: { ...dateMatch, status: "succeeded" } },
+    {
+      $group: {
+        _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+        amount: { $sum: "$amount" },
+      },
+    },
+    { $sort: { _id: 1 } },
+    { $project: { date: "$_id", amount: 1, _id: 0 } },
+  ]);
+
+  // 9. Bookings by Status (for bar chart)
+  const bookingsByStatus = await Booking.aggregate([
+    { $match: dateMatch },
+    {
+      $group: {
+        _id: "$status",
+        count: { $sum: 1 },
+      },
+    },
+    { $project: { status: "$_id", count: 1, _id: 0 } },
+  ]).then(results =>
+    results.reduce((acc, curr) => ({ ...acc, [curr.status]: curr.count }), {})
+  );
 
   res.json({
-    summary: {
-      totalBookings,
-      confirmedBookings,
-      totalVehicles,
-      availableVehicles,
+    success: true,
+    data: {
       totalRevenue,
-      todayRevenue: todayRevenue[0]?.total || 0,
-      pendingPayments: await Booking.countDocuments({
-        paymentStatus: { $in: ["pending", "partial"] },
-      }),
+      todayRevenue,
+      totalBookings,
+      activeVehicles,
+      pendingBookings,
+      paidBookings,
+      bookingsNeedApproval,
+      dailyRevenue,
+      bookingsByStatus,
     },
   });
+  
 });
 
 const getRevenueReport = catchAsync(async (req, res) => {
