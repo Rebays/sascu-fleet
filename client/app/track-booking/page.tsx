@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { FormEvent, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { trackBooking, type TrackingResponse } from "@/lib/api";
 import {
   BOOKING_STATUS_DISPLAY,
   PAYMENT_STATUS_DISPLAY,
+  API_URL,
 } from "@/lib/constants";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import Breadcrumb from "@/components/Breadcrumb";
@@ -27,6 +29,15 @@ import {
   Phone,
 } from "lucide-react";
 
+// Helper function to get the full image URL
+const getImageUrl = (imagePath: string): string => {
+  if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
+    return imagePath;
+  }
+  const baseUrl = API_URL.replace("/api", "");
+  return `${baseUrl}${imagePath.startsWith("/") ? "" : "/"}${imagePath}`;
+};
+
 export default function TrackBookingPage() {
   const searchParams = useSearchParams();
   const [trackingNumber, setTrackingNumber] = useState("");
@@ -34,6 +45,7 @@ export default function TrackBookingPage() {
     TrackingResponse["data"] | null
   >(null);
   const [error, setError] = useState("");
+  const [isExpired, setIsExpired] = useState(false);
   const [loading, setLoading] = useState(false);
 
   // Check for URL parameter and auto-search
@@ -48,6 +60,7 @@ export default function TrackBookingPage() {
 
   const searchBooking = async (bookingRef: string) => {
     setError("");
+    setIsExpired(false);
     setBookingDetails(null);
     setLoading(true);
 
@@ -55,10 +68,16 @@ export default function TrackBookingPage() {
       const response = await trackBooking(bookingRef.trim());
       setBookingDetails(response.data);
     } catch (err: any) {
-      setError(
-        err.message ||
-          "Failed to track booking. Please check your reference number."
-      );
+      // Check if it's an expired booking error (400 status)
+      if (err.status === 400 && err.message?.toLowerCase().includes("expired")) {
+        setIsExpired(true);
+        setError(err.message || "This booking has expired.");
+      } else {
+        setError(
+          err.message ||
+            "Failed to track booking. Please check your reference number."
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -165,22 +184,38 @@ export default function TrackBookingPage() {
                     Searching...
                   </>
                 ) : (
-                  <>
-                    Track My Booking
-                  </>
+                  <>Track My Booking</>
                 )}
               </button>
             </form>
 
             {error && (
-              <div className="mt-6 bg-destructive/10 border border-destructive/50 rounded-lg p-5">
+              <div className={`mt-6 border rounded-lg p-5 ${
+                isExpired
+                  ? "bg-yellow-50 border-yellow-300"
+                  : "bg-destructive/10 border-destructive/50"
+              }`}>
                 <div className="flex items-start gap-3">
-                  <AlertCircle className="h-6 w-6 text-destructive flex-shrink-0 mt-0.5" />
+                  <AlertCircle className={`h-6 w-6 flex-shrink-0 mt-0.5 ${
+                    isExpired ? "text-yellow-600" : "text-destructive"
+                  }`} />
                   <div>
-                    <h3 className="font-semibold text-destructive mb-1">
-                      Booking Not Found
+                    <h3 className={`font-semibold mb-1 ${
+                      isExpired ? "text-yellow-900" : "text-destructive"
+                    }`}>
+                      {isExpired ? "Booking Expired" : "Booking Not Found"}
                     </h3>
-                    <p className="text-sm text-destructive/90">{error}</p>
+                    <p className={`text-sm ${
+                      isExpired ? "text-yellow-800" : "text-destructive/90"
+                    }`}>
+                      {error}
+                    </p>
+                    {isExpired && (
+                      <p className="text-sm text-yellow-800 mt-2">
+                        This booking has passed its end date and is no longer active.
+                        For assistance, please contact support.
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -287,6 +322,21 @@ export default function TrackBookingPage() {
                   </div>
                   <h3 className="text-lg font-bold">Vehicle Details</h3>
                 </div>
+
+                {/* Vehicle Image */}
+                {bookingDetails.vehicle.images &&
+                  bookingDetails.vehicle.images.length > 0 && (
+                    <div className="relative bg-muted/40 h-48 rounded-lg overflow-hidden mb-4 border">
+                      <Image
+                        src={getImageUrl(bookingDetails.vehicle.images[0])}
+                        alt={`${bookingDetails.vehicle.make} ${bookingDetails.vehicle.model}`}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, 400px"
+                      />
+                    </div>
+                  )}
+
                 <div className="space-y-4">
                   <div className="pb-3 border-b">
                     <p className="text-xs text-muted-foreground mb-1">
@@ -308,7 +358,7 @@ export default function TrackBookingPage() {
                       {bookingDetails.vehicle.licensePlate}
                     </p>
                   </div>
-                  <div>
+                  <div className="pb-3 border-b">
                     <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
                       <MapPin className="h-3 w-3" />
                       Location
@@ -317,6 +367,38 @@ export default function TrackBookingPage() {
                       {bookingDetails.vehicle.location}
                     </p>
                   </div>
+
+                  {/* Pricing Information */}
+                  {((bookingDetails.vehicle.pricePerDay ?? 0) > 0 ||
+                    (bookingDetails.vehicle.pricePerHour ?? 0) > 0) && (
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-2">
+                        Rental Rates
+                      </p>
+                      <div className="space-y-2">
+                        {(bookingDetails.vehicle.pricePerDay ?? 0) > 0 && (
+                          <div className="flex items-center justify-between bg-muted/30 rounded-md">
+                            <span className="text-sm">Daily Rate</span>
+                            <span className="font-semibold text-primary">
+                              {formatCurrency(
+                                bookingDetails.vehicle.pricePerDay!
+                              )}
+                            </span>
+                          </div>
+                        )}
+                        {(bookingDetails.vehicle.pricePerHour ?? 0) > 0 && (
+                          <div className="flex items-center justify-between bg-muted/30 rounded-md">
+                            <span className="text-sm">Hourly Rate</span>
+                            <span className="font-semibold text-primary">
+                              {formatCurrency(
+                                bookingDetails.vehicle.pricePerHour!
+                              )}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
