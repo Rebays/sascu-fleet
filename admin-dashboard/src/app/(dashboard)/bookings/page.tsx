@@ -485,7 +485,7 @@ export default function AdminBookingsPage() {
         <Card>
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="border-b bg-gray-50">
+              <thead className="border-b bg-gray-50 dark:bg-slate-800">
                 <tr>
                   <th className="text-left p-4 font-medium">Ref</th>
                   <th className="text-left p-4 font-medium">Customer</th>
@@ -776,7 +776,7 @@ export default function AdminBookingsPage() {
 
               {/* Rate info */}
               {form.vehicleId && form.startDate && form.endDate && (
-                <p className="text-sm mt-2">
+                <p className="text-sm mt-2 dark:text-blue-900">
                   {(() => {
                     const selectedUser = users.find((u: any) => u._id === form.userId);
                     const isMember = !!selectedUser?.isMember;
