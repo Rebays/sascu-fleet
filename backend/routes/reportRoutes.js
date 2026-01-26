@@ -4,7 +4,8 @@ const {
   getDashboard,
   getRevenueReport,
   getTopVehicles,
-  exportBookings
+  exportBookings,
+  getRevenueByVehicleType,
 } = require('../controllers/reportController');
 const { protect } = require('../middleware/auth');
 const admin = require('../middleware/admin');
@@ -15,6 +16,7 @@ router.use(protect, admin); // ← All reports admin-only
 
 router.get('/dashboard', getDashboard);
 router.get('/revenue', getRevenueReport);
+router.get('/revenue-by-type', getRevenueByVehicleType);
 router.get('/top-vehicles', getTopVehicles);
 router.get('/export-csv', exportBookings);
 

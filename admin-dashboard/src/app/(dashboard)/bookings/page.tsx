@@ -74,7 +74,7 @@ export default function AdminBookingsPage() {
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
-  let disableSaveButton: boolean= false;
+  let disableSaveButton: boolean = false;
 
   const [form, setForm] = useState({
     userId: '',
@@ -690,7 +690,7 @@ export default function AdminBookingsPage() {
                   }
 
                   return (
-                    
+
                     <div className="flex items-center gap-3 text-green-600">
                       <CheckCircle2 className="w-6 h-6 shrink-0" />
                       <p className="font-semibold">Vehicle Available!</p>
@@ -718,20 +718,51 @@ export default function AdminBookingsPage() {
             <div className="rounded-lg bg-blue-50 p-4 border border-blue-200">
               <div className="flex justify-between items-center">
                 <span className="text-lg font-semibold text-blue-900">Total Price</span>
+
                 <span className="text-3xl font-bold text-blue-700">
                   SBD{(() => {
                     if (!form.vehicleId || !form.startDate || !form.endDate) return '0';
+
                     const vehicle = vehicles.find((v: any) => v._id === form.vehicleId);
                     if (!vehicle) return '0';
 
                     const start = new Date(form.startDate);
                     const end = new Date(form.endDate);
-                    const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) || 1;
+                    const days = Math.max(1, Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
 
-                    return (days * vehicle.pricePerDay).toLocaleString();
+                    const selectedUser = users.find((u: any) => u._id === form.userId);
+                    const isMember = !!selectedUser?.isMember;
+
+                    const dailyRate = isMember && vehicle.pricePerDayMember > 0
+                      ? vehicle.pricePerDayMember
+                      : vehicle.pricePerDay;
+
+                    return (days * dailyRate).toLocaleString();
                   })()}
                 </span>
               </div>
+
+              {/* Rate info */}
+              {form.vehicleId && form.startDate && form.endDate && (
+                <p className="text-sm mt-2">
+                  {(() => {
+                    const selectedUser = users.find((u: any) => u._id === form.userId);
+                    const isMember = !!selectedUser?.isMember;
+                    const vehicle = vehicles.find((v: any) => v._id === form.vehicleId);
+
+                    if (!vehicle) return '';
+
+                    const usedDaily = isMember && vehicle.pricePerDayMember > 0
+                      ? vehicle.pricePerDayMember
+                      : vehicle.pricePerDay;
+
+                    return isMember
+                      ? `Member rate applied: SBD${usedDaily}/day`
+                      : `Regular rate: SBD${usedDaily}/day`;
+                  })()}
+                </p>
+              )}
+
               <p className="text-sm text-blue-600 mt-1">
                 {(() => {
                   if (!form.startDate || !form.endDate) return '';

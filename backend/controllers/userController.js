@@ -6,6 +6,44 @@ const getMe = catchAsync(async (req, res) => {
   res.json(user);
 });
 
+// controllers/userController.js
+const toggleMembership = catchAsync(async (req, res) => {
+  const { id } = req.params;
+
+  const user = await User.findById(id);
+  if (!user) {
+    return res.status(404).json({ success: false, message: 'User not found' });
+  }
+
+  // Toggle
+  user.isMember = !user.isMember;
+
+  // Optional: set extra fields when becoming a member
+  if (user.isMember) {
+    user.membershipSince = new Date();
+    // user.membershipExpiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000); // e.g. 1 year
+    // user.membershipTier = 'basic';
+  } else {
+    user.membershipSince = null;
+    user.membershipExpiresAt = null;
+    user.membershipTier = 'none';
+  }
+
+  await user.save();
+
+  res.json({
+    success: true,
+    message: `User is now ${user.isMember ? 'a member' : 'not a member'}`,
+    data: {
+      _id: user._id,
+      isMember: user.isMember,
+      membershipSince: user.membershipSince,
+      membershipExpiresAt: user.membershipExpiresAt,
+      membershipTier: user.membershipTier
+    }
+  });
+});
+
 const updateMe = catchAsync(async (req, res) => {
   const updates = (({ name, phone }) => ({ name, phone }))(req.body);
 
@@ -82,4 +120,4 @@ const deleteUser = catchAsync(async (req, res) => {
   });
 });
 
-module.exports = { getMe, updateMe, getAllUsers, updateUser, deleteUser };
+module.exports = { getMe, updateMe, getAllUsers, updateUser, deleteUser,toggleMembership };

@@ -16,8 +16,8 @@ const menuItems = [
   { href: "/bookings", label: "Bookings", icon: Receipt },
   { href: "/vehicles", label: "Vehicles", icon: Car },
   { href: "/customers", label: "Customers", icon: Users },
-  { href: "/invoices", label: "Invoices", icon: FileText },
-  { href: "/reports", label: "Reports", icon: BarChart3 },
+  // { href: "/invoices", label: "Invoices", icon: FileText },
+  // { href: "/reports", label: "Reports", icon: BarChart3 },
 ];
 
 export default function Sidebar() {

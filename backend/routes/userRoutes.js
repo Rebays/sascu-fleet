@@ -1,5 +1,5 @@
 const express = require('express');
-const { getMe, updateMe,getAllUsers,updateUser,deleteUser } = require('../controllers/userController');
+const { getMe, updateMe,getAllUsers,updateUser,deleteUser, toggleMembership } = require('../controllers/userController');
 const { protect} = require('../middleware/auth');
 const admin = require('../middleware/admin');
 
@@ -11,5 +11,6 @@ router.put('/me', updateMe);
 router.get('/all', protect, admin, getAllUsers);
 router.put('/:id', protect, admin, updateUser);
 router.delete('/:id', protect, admin, deleteUser);
+router.patch('/:id/toggle-membership', protect, admin, toggleMembership);
 
 module.exports = router;

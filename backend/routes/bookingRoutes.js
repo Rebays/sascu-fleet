@@ -10,6 +10,7 @@ const {
   recordPayment,
   getPayments,
   sendInvoiceEmail,
+  sendReceiptEmail,
   updateBookingStatus,
   getBookingByRef,
 } = require("../controllers/bookingController");
@@ -35,6 +36,7 @@ router.delete("/admin/:id", protect, admin, deleteBookingAdmin);
 router.post("/admin/:id/payments", protect, admin, recordPayment);
 router.get("/admin/:id/payments", protect, admin, getPayments);
 router.post("/admin/:id/send-invoice", protect, admin, sendInvoiceEmail);
+router.post('/admin/:id/send-receipt', protect, admin, sendReceiptEmail);
 
 router.patch("/admin/:id/status", protect, admin, updateBookingStatus);
 

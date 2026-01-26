@@ -440,6 +440,72 @@ const sendInvoiceEmail = catchAsync(async (req, res) => {
 
   doc.end();
 });
+
+const sendReceiptEmail = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const booking = await Booking.findById(id)
+    .populate('user', 'name email')
+    .populate('vehicle', 'make model licensePlate');
+
+  if (!booking) {
+    return res.status(404).json({ message: 'Booking not found' });
+  }
+
+  const payments = await Payment.find({ booking: booking._id, status: 'succeeded' }).sort({ createdAt: -1 });
+
+  if (!payments || payments.length === 0) {
+    return res.status(400).json({ message: 'No successful payments found for this booking' });
+  }
+
+  const docR = new PDFDocument({ margin: 50 });
+  const buffersR = [];
+  docR.on('data', buffersR.push.bind(buffersR));
+  docR.on('end', async () => {
+    const pdfBuffer = Buffer.concat(buffersR);
+
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: process.env.SMTP_PORT,
+      secure: process.env.SMTP_SECURE === 'true',
+      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+    });
+
+    await transporter.sendMail({
+      from: `"SASCU Rentals" <${process.env.SMTP_USER}>`,
+      to: booking.user.email,
+      cc: 'gsaemane@flysolomons.com',
+      subject: `Payment Receipt - ${booking.bookingRef}`,
+      html: `
+        <h2>Hi ${booking.user.name},</h2>
+        <p>Thank you for your payment. Please find your receipt attached.</p>
+        <p><strong>Booking Ref:</strong> ${booking.bookingRef}</p>
+      `,
+      attachments: [{ filename: `Receipt-${booking.bookingRef}.pdf`, content: pdfBuffer }],
+    });
+
+    res.json({ success: true, message: 'Receipt sent successfully!' });
+  });
+
+  docR.fontSize(20).text('RECEIPT', { align: 'center' });
+  docR.moveDown();
+  docR.fontSize(12).text(`Receipt For: ${booking.bookingRef}`);
+  docR.text(`Date: ${new Date().toLocaleDateString('en-ZA')}`);
+  docR.text(`Customer: ${booking.user.name}`);
+  docR.moveDown();
+
+  docR.text('Payment Details', { underline: true });
+  let totalPaid = 0;
+  payments.forEach((p) => {
+    totalPaid += p.amount;
+    docR.text(`${new Date(p.createdAt).toLocaleString()} • ${p.paymentMethod} • SBD${p.amount.toFixed(2)} • ${p.notes || ''}`);
+  });
+
+  docR.moveDown();
+  docR.fontSize(14).text(`Total Paid: SBD${totalPaid.toFixed(2)}`, { align: 'right' });
+
+  docR.end();
+});
+
 const updateBookingStatus = catchAsync(async (req, res) => {
   const { id } = req.params;
   const { status, note = "" } = req.body;
@@ -491,5 +557,6 @@ module.exports = {
   recordPayment,
   getPayments,
   sendInvoiceEmail,
+  sendReceiptEmail,
   updateBookingStatus,
 };

@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Car, Edit, Trash2, Plus, Upload, X, Grid3x3, List, Search, Loader } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import useSWR, { mutate } from 'swr';
-import fetcher  from '@/lib/api';
+import fetcher from '@/lib/api';
 import toast from 'react-hot-toast';
 import Image from 'next/image';
 
@@ -24,6 +24,8 @@ interface Vehicle {
   licensePlate: string;
   pricePerHour: number;
   pricePerDay: number;
+  pricePerHourMember?: number;
+  pricePerDayMember?: number;
   location: string;
   isAvailable: boolean;
   images?: string[];
@@ -38,7 +40,7 @@ export default function VehiclesPage() {
   const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
   const [form, setForm] = useState({
     make: '', model: '', year: '', type: 'car', licensePlate: '',
-    pricePerHour: '', pricePerDay: '', location: ''
+    pricePerHour: '', pricePerDay: '', location: '', pricePerHourMember: '', pricePerDayMember: ''
   });
   const [images, setImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -54,7 +56,7 @@ export default function VehiclesPage() {
       v.licensePlate?.toLowerCase().includes(lower)
     );
   }, [vehicles, search]);
-  
+
   // Handle image uploads routine
   const handleImageUpload = async (files: FileList | null) => {
     if (!files) return;
@@ -121,9 +123,9 @@ export default function VehiclesPage() {
     console.log(payload);
 
     try {
-      const url = editingVehicle 
-      ? `${process.env.NEXT_PUBLIC_API_URL}/vehicles/${editingVehicle._id}`
-      : `${process.env.NEXT_PUBLIC_API_URL}/vehicles/`;
+      const url = editingVehicle
+        ? `${process.env.NEXT_PUBLIC_API_URL}/vehicles/${editingVehicle._id}`
+        : `${process.env.NEXT_PUBLIC_API_URL}/vehicles/`;
 
       const method = editingVehicle ? 'PUT' : 'POST';
       console.log(`Making ${method} request to ${url}`);
@@ -141,7 +143,7 @@ export default function VehiclesPage() {
       mutate('/vehicles');
       setOpen(false);
       setEditingVehicle(null);
-      setForm({ make: '', model: '', year: '', type: 'car', licensePlate: '', pricePerHour: '', pricePerDay: '', location: '' });
+      setForm({ make: '', model: '', year: '', type: 'car', licensePlate: '', pricePerHour: '', pricePerDay: '', location: '', pricePerHourMember: '', pricePerDayMember: '' });
       setImages([]);
     } catch {
       toast.error('Failed to save');
@@ -153,7 +155,7 @@ export default function VehiclesPage() {
     setForm({
       make: v.make, model: v.model, year: v.year.toString(), type: v.type,
       licensePlate: v.licensePlate, pricePerHour: v.pricePerHour.toString(),
-      pricePerDay: v.pricePerDay.toString(), location: v.location || ''
+      pricePerDay: v.pricePerDay.toString(), location: v.location || '', pricePerHourMember: v.pricePerHourMember?.toString() || '0', pricePerDayMember: v.pricePerDayMember?.toString() || '0'
     });
     setImages(v.images || []);
     setOpen(true);
@@ -197,7 +199,7 @@ export default function VehiclesPage() {
               <List className="w-4 h-4" />
             </Button>
           </div>
-          
+
           <Button className="flex items-center cursor-pointer" onClick={() => { setEditingVehicle(null); setImages([]); setOpen(true); }}>
             <Plus className="w-5 h-5 mr-2" /> Add Vehicle
           </Button>
@@ -209,7 +211,7 @@ export default function VehiclesPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filtered.map((v: any) => (
             <Card key={v._id} className="overflow-hidden hover:shadow-xl transition">
-              
+
               {v.images?.[0] ? (
                 <Image src={v.images[0]} alt={v.model} width={400} height={300} className="w-full h-48 object-cover" />
               ) : (
@@ -221,7 +223,16 @@ export default function VehiclesPage() {
                 <h3 className="text-xl font-bold mb-2">{v.make} {v.model} ({v.year})</h3>
                 <p className="text-gray-600 mb-4">License: <strong>{v.licensePlate}</strong></p>
                 <div className="text-sm space-y-1">
-                  <p>Rate: <strong>SBD{v.pricePerHour}/hr • SBD{v.pricePerDay}/day</strong></p>
+                  <span className='font-medium text-blue-600'>RATES</span>
+                  <p>Regular: 
+                    
+                    <strong>SBD{v.pricePerHour}/hr • SBD{v.pricePerDay}/day</strong>
+                  </p>
+                  <p>Member: 
+                    
+                    <strong>SBD{v.pricePerHourMember}/hr • SBD{v.pricePerDayMember}/day</strong>
+                  </p>
+                  <hr className="my-2" />
                   <p>Status: <Badge variant={v.isAvailable ? 'default' : 'destructive'}>
                     {v.isAvailable ? 'Available' : 'Booked'}
                   </Badge></p>
@@ -344,8 +355,26 @@ export default function VehiclesPage() {
             </div>
             <div><Label>License Plate</Label><Input value={form.licensePlate} onChange={e => setForm({ ...form, licensePlate: e.target.value })} /></div>
             <div><Label>Location</Label><Input value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} /></div>
-            <div><Label>Price per Hour (SBD)</Label><Input type="number" value={form.pricePerHour} onChange={e => setForm({ ...form, pricePerHour: e.target.value })} /></div>
-            <div><Label>Price per Day (SBD)</Label><Input type="number" value={form.pricePerDay} onChange={e => setForm({ ...form, pricePerDay: e.target.value })} /></div>
+            <div><Label>Price per Hour (Regular)</Label><Input type="number" value={form.pricePerHour} onChange={e => setForm({ ...form, pricePerHour: e.target.value })} /></div>
+            <div><Label>Price per Day (Regular)</Label><Input type="number" value={form.pricePerDay} onChange={e => setForm({ ...form, pricePerDay: e.target.value })} /></div>
+            <div>
+              <Label>Price per Hour (Members)</Label>
+              <Input
+                type="number"
+                value={form.pricePerHourMember || ''}
+                onChange={e => setForm({ ...form, pricePerHourMember: e.target.value })}
+                placeholder="Same as regular if blank"
+              />
+            </div>
+            <div>
+              <Label>Price per Day (Members)</Label>
+              <Input
+                type="number"
+                value={form.pricePerDayMember || ''}
+                onChange={e => setForm({ ...form, pricePerDayMember: e.target.value })}
+                placeholder="Same as regular if blank"
+              />
+            </div>
           </div>
 
           <div className="flex justify-end gap-3 mt-6">

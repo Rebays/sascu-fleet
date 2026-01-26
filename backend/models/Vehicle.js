@@ -8,6 +8,8 @@ const vehicleSchema = new mongoose.Schema({
   licensePlate: { type: String, required: true, unique: true },
   pricePerHour: { type: Number, required: true },
   pricePerDay: { type: Number, required: true },
+  pricePerHourMember: { type: Number, default: 0 },   // 0 = fallback to regular price
+  pricePerDayMember: { type: Number, default: 0 },
   location: { type: String, required: true },
   images: [String]
 }, { timestamps: true });

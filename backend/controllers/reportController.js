@@ -79,6 +79,95 @@ const getRevenueReport = catchAsync(async (req, res) => {
     { $sort: { _id: 1 } },
   ]);
 
+  // CSV export support
+  if (format === "csv") {
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=revenue-${groupBy}-${startDate || 'all'}-to-${endDate || 'all'}.csv`
+    );
+
+    const csvStream = csv.format({ headers: true });
+    csvStream.pipe(res);
+
+    for (const r of revenue) {
+      csvStream.write({
+        Period: r._id,
+        Revenue: r.revenue,
+        Transactions: r.count,
+      });
+    }
+
+    csvStream.end();
+    return;
+  }
+
+  res.json({ revenue });
+});
+
+const getRevenueByVehicleType = catchAsync(async (req, res) => {
+  let { startDate, endDate, format = "json" } = req.query;
+
+  const match = { status: "succeeded" };
+  if (startDate && endDate) {
+    match.createdAt = {
+      $gte: new Date(startDate),
+      $lte: new Date(endDate),
+    };
+  }
+
+  const revenue = await Payment.aggregate([
+    { $match: match },
+    {
+      $lookup: {
+        from: "bookings",
+        localField: "booking",
+        foreignField: "_id",
+        as: "booking",
+      },
+    },
+    { $unwind: "$booking" },
+    {
+      $lookup: {
+        from: "vehicles",
+        localField: "booking.vehicle",
+        foreignField: "_id",
+        as: "vehicle",
+      },
+    },
+    { $unwind: "$vehicle" },
+    {
+      $group: {
+        _id: "$vehicle.type",
+        revenue: { $sum: "$amount" },
+        bookings: { $sum: 1 },
+      },
+    },
+    { $sort: { revenue: -1 } },
+  ]);
+
+  if (format === "csv") {
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=revenue-by-vehicle-type-${startDate || 'all'}-to-${endDate || 'all'}.csv`
+    );
+
+    const csvStream = csv.format({ headers: true });
+    csvStream.pipe(res);
+
+    for (const r of revenue) {
+      csvStream.write({
+        Type: r._id,
+        Revenue: r.revenue,
+        Bookings: r.bookings,
+      });
+    }
+
+    csvStream.end();
+    return;
+  }
+
   res.json({ revenue });
 });
 
@@ -162,6 +251,7 @@ const exportBookings = catchAsync(async (req, res) => {
 module.exports = {
   getDashboard,
   getRevenueReport,
+  getRevenueByVehicleType,
   getTopVehicles,
   exportBookings,
 };

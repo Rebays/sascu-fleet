@@ -1,51 +1,310 @@
-"use client";
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { toast } from 'react-hot-toast';
+'use client';
+
+import { useState, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
-import { DollarSign, Car, Calendar, FileText } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import {
+  CalendarIcon,
+  Download,
+  DollarSign,
+  Car,
+  Calendar,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  TrendingUp,
+  Loader,
+} from 'lucide-react';
+import { format, subDays } from 'date-fns';
 import useSWR from 'swr';
-import api from '@/lib/api';
+import { fetcher } from '@/lib/api';
+import { toast } from 'sonner';
+import * as XLSX from 'xlsx';
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from '@/components/ui/chart';
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Legend,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
 
+export default function DashboardPage() {
+  const today = new Date();
+  const [dateRange, setDateRange] = useState({
+    start: format(subDays(today, 30), 'yyyy-MM-dd'),
+    end: format(today, 'yyyy-MM-dd'),
+  });
 
-const fetcher = (url: string) => api.get(url).then(res => res.data);
+  const { data: stats, error, isLoading } = useSWR<any>(
+    `/reports/dashboard?start=${dateRange.start}&end=${dateRange.end}`,
+    fetcher
+  );
 
-export default function Dashboard() {
-  const router = useRouter();
-  const { data: stats } = useSWR('/reports/dashboard', fetcher);
+  // Chart data preparation
+  const revenueData = useMemo(() => {
+    return stats?.dailyRevenue?.map((item: any) => ({
+      date: format(new Date(item.date), 'MMM dd'),
+      revenue: item.amount,
+    })) || [];
+  }, [stats]);
 
-  const cards = [
-    { title: 'Total Revenue', value: `$${stats?.summary.totalRevenue || 0}`, icon: DollarSign },
-    { title: 'Active Bookings', value: stats?.summary.confirmedBookings || 0, icon: Calendar },
-    { title: 'Available Vehicles', value: stats?.summary.availableVehicles || 0, icon: Car },
-    { title: 'Pending Invoices', value: stats?.summary.pendingPayments || 0, icon: FileText },
-  ];
+  const bookingsByStatus = useMemo(() => {
+    return stats?.bookingsByStatus
+      ? Object.entries(stats.bookingsByStatus).map(([status, count]) => ({
+          name: status.charAt(0).toUpperCase() + status.slice(1),
+          value: count,
+        }))
+      : [];
+  }, [stats]);
 
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
- 
-  if(user.role !== 'admin') {
-        router.push('/login');
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setDateRange((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
+  };
+
+  const exportToExcel = () => {
+    if (!stats) return toast.error('No data to export');
+
+    const wb = XLSX.utils.book_new();
+
+    // Summary sheet
+    const summaryData = [
+      ['Metric', 'Value'],
+      ['Total Revenue', `SBD${stats.totalRevenue?.toLocaleString() || '0'}`],
+      ["Today's Revenue", `SBD${stats.todayRevenue?.toLocaleString() || '0'}`],
+      ['Total Bookings', stats.totalBookings || 0],
+      ['Active Vehicles', stats.activeVehicles || 0],
+      ['Pending Bookings', stats.pendingBookings || 0],
+      ['Paid Bookings', stats.paidBookings || 0],
+      ['Bookings Need Approval', stats.bookingsNeedApproval || 0],
+      ['Date Range', `${dateRange.start} to ${dateRange.end}`],
+    ];
+    const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
+    XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
+
+    // Daily revenue
+    if (revenueData.length > 0) {
+      const revenueSheet = XLSX.utils.json_to_sheet(revenueData);
+      XLSX.utils.book_append_sheet(wb, revenueSheet, 'Daily Revenue');
+    }
+
+    XLSX.writeFile(wb, `dashboard-report-${format(today, 'yyyy-MM-dd')}.xlsx`);
+    toast.success('Report exported to Excel');
+  };
+
+  if (isLoading) {
+    return (
+      <div className="p-8 flex flex-col items-center justify-center min-h-[60vh]">
+        <Loader className="w-10 h-10 animate-spin text-blue-600 mb-4" />
+        <p className="text-gray-600">Loading dashboard...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-8 text-center text-red-600">
+        Failed to load dashboard data. Please try again.
+      </div>
+    );
   }
 
   return (
-    
-    <div>
+    <div className="p-6 space-y-8">
+      {/* Header + Date Filter */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground mt-1">
+            {format(new Date(dateRange.start), 'MMM dd, yyyy')} –{' '}
+            {format(new Date(dateRange.end), 'MMM dd, yyyy')}
+          </p>
+        </div>
 
-      <h1 className="text-2xl font-bold mb-6 text-blue-900">Admin Dashboard</h1>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {cards.map((card) => (
-          <Card key={card.title} className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">{card.title}</p>
-                <p className="text-2xl font-bold text-blue-600">{card.value}</p>
-              </div>
-              <card.icon className="w-10 h-10 text-blue-600" />
+        <div className="flex flex-col sm:flex-row gap-4 items-end">
+          <div className="grid grid-cols-2 gap-4 w-full sm:w-auto">
+            <div>
+              <Label htmlFor="start">Start Date</Label>
+              <Input
+                id="start"
+                type="date"
+                name="start"
+                value={dateRange.start}
+                onChange={handleDateChange}
+                max={dateRange.end}
+                className="mt-1"
+              />
             </div>
-          </Card>
-        ))}
+            <div>
+              <Label htmlFor="end">End Date</Label>
+              <Input
+                id="end"
+                type="date"
+                name="end"
+                value={dateRange.end}
+                onChange={handleDateChange}
+                min={dateRange.start}
+                max={format(today, 'yyyy-MM-dd')}
+                className="mt-1"
+              />
+            </div>
+          </div>
+
+          <Button onClick={exportToExcel} variant="outline" className="w-full sm:w-auto">
+            <Download className="w-4 h-4 mr-2" />
+            Export Excel
+          </Button>
+        </div>
       </div>
-      {/* Add revenue chart here later */}
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Total Revenue</p>
+              <p className="text-3xl font-bold mt-2">
+                SBD{stats?.totalRevenue?.toLocaleString() || '0'}
+              </p>
+            </div>
+            <DollarSign className="w-10 h-10 text-green-600 opacity-20" />
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Today's Revenue</p>
+              <p className="text-3xl font-bold mt-2">
+                SBD{stats?.todayRevenue?.toLocaleString() || '0'}
+              </p>
+            </div>
+            <TrendingUp className="w-10 h-10 text-blue-600 opacity-20" />
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Total Bookings</p>
+              <p className="text-3xl font-bold mt-2">{stats?.totalBookings || 0}</p>
+            </div>
+            <Calendar className="w-10 h-10 text-purple-600 opacity-20" />
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Active Vehicles</p>
+              <p className="text-3xl font-bold mt-2">{stats?.activeVehicles || 0}</p>
+            </div>
+            <Car className="w-10 h-10 text-amber-600 opacity-20" />
+          </div>
+        </Card>
+
+        {/* New metrics */}
+        <Card className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Pending Bookings</p>
+              <p className="text-3xl font-bold mt-2 text-amber-600">
+                {stats?.pendingBookings || 0}
+              </p>
+            </div>
+            <Clock className="w-10 h-10 text-amber-600 opacity-20" />
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Paid Bookings</p>
+              <p className="text-3xl font-bold mt-2 text-green-600">
+                {stats?.paidBookings || 0}
+              </p>
+            </div>
+            <CheckCircle2 className="w-10 h-10 text-green-600 opacity-20" />
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Need Approval</p>
+              <p className="text-3xl font-bold mt-2 text-red-600">
+                {stats?.bookingsNeedApproval || 0}
+              </p>
+            </div>
+            <AlertCircle className="w-10 h-10 text-red-600 opacity-20" />
+          </div>
+        </Card>
+      </div>
+
+      {/* Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Revenue Over Time */}
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold mb-4">Revenue Over Time</h3>
+          <div className="h-[320px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={revenueData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis dataKey="date" stroke="#6b7280" />
+                <YAxis stroke="#6b7280" />
+                <Tooltip
+                  formatter={(value: number) => [`SBD${value.toLocaleString()}`, 'Revenue']}
+                  contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb' }}
+                />
+                <Legend />
+                <Line
+                  type="monotone"
+                  dataKey="revenue"
+                  stroke="#3b82f6"
+                  strokeWidth={2}
+                  dot={{ r: 4 }}
+                  activeDot={{ r: 6 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </Card>
+
+        {/* Bookings by Status */}
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold mb-4">Bookings by Status</h3>
+          <div className="h-[320px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={bookingsByStatus}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis dataKey="name" stroke="#6b7280" />
+                <YAxis stroke="#6b7280" />
+                <Tooltip
+                  formatter={(value: number) => [`${value} bookings`, 'Count']}
+                  contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb' }}
+                />
+                <Legend />
+                <Bar dataKey="value" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </Card>
+      </div>
     </div>
   );
 }

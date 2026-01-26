@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
@@ -16,7 +17,8 @@ import { Label } from '@/components/ui/label';
 import { User, Mail, Phone, Edit, Trash2, Plus, Shield, List, Grid3x3, Search, Loader } from 'lucide-react';
 import useSWR, { mutate } from 'swr';
 import { fetcher } from '@/lib/api';
-import toast from 'react-hot-toast';
+
+import ConfirmationModal from '@/components/ConfirmationModal';
 
 export default function CustomersPage() {
   const { data: response, error, isLoading } = useSWR<any>('/users/all', fetcher); // adjust route if needed
@@ -30,8 +32,13 @@ export default function CustomersPage() {
     email: '',
     phone: '',
     password: '',
+    isMember: false,
   });
   const [search, setSearch] = useState('');
+
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [actionType, setActionType] = useState<'makeMember' | 'removeMember' | null>(null);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     if (!search) return customers;
@@ -42,10 +49,10 @@ export default function CustomersPage() {
       c.phone?.includes(search)
     );
   }, [customers, search]);
-  
+
   const openCreateModal = () => {
     setEditing(null);
-    setForm({ name: '', email: '', phone: '', password: '' });
+    setForm({ name: '', email: '', phone: '', password: '', isMember: false });
     setOpen(true);
   };
 
@@ -56,8 +63,16 @@ export default function CustomersPage() {
       email: user.email,
       phone: user.phone || '',
       password: '', // never pre-fill password
+      isMember: user.isMember || false,
     });
     setOpen(true);
+  };
+
+  // Membership toggle handler
+  const handleToggleMembership = (customerId: string, willBeMember: boolean) => {
+    setSelectedCustomerId(customerId);
+    setActionType(willBeMember ? 'makeMember' : 'removeMember');
+    setConfirmOpen(true);
   };
 
   const handleSubmit = async () => {
@@ -100,11 +115,11 @@ export default function CustomersPage() {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
     })
-    .then(() => {
-      toast.success('Customer deleted');
-      mutate('/users');
-    })
-    .catch(() => toast.error('Failed to delete'));
+      .then(() => {
+        toast.success('Customer deleted');
+        mutate('/users');
+      })
+      .catch(() => toast.error('Failed to delete'));
   };
 
   if (isLoading) return <div className="text-center py-20"><Loader className="animate-spin flex w-6 h-6 mx-auto" />Loading customers...</div>;
@@ -115,7 +130,7 @@ export default function CustomersPage() {
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-xl font-semibold text-blue-900">Customers ({filtered.length})</h1>
         <div className="flex items-center gap-4">
-            <div className="relative">
+          <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <Input
               placeholder="Search by name, email, phone..."
@@ -124,7 +139,7 @@ export default function CustomersPage() {
               className="pl-10 w-96"
             />
           </div>
-            <div className="flex rounded-lg p-1">
+          <div className="flex rounded-lg p-1">
             <Button
               className="mr-1.5"
               variant={viewMode === 'card' ? 'default' : 'outline'}
@@ -140,11 +155,11 @@ export default function CustomersPage() {
             >
               <List className="w-4 h-4 mr-1" />
             </Button>
-        </div>
-        <Button className="flex items-center" onClick={openCreateModal}>
-          <Plus className="w-5 h-5 mr-2" />
-          Add Customer
-        </Button>
+          </div>
+          <Button className="flex items-center" onClick={openCreateModal}>
+            <Plus className="w-5 h-5 mr-2" />
+            Add Customer
+          </Button>
         </div>
       </div>
 
@@ -156,16 +171,20 @@ export default function CustomersPage() {
               <div className="flex justify-between items-start mb-4">
                 <div className="bg-blue-100 p-3 rounded-full">
                   <User className="w-8 h-8 text-blue-600" />
+
                 </div>
+
                 {c.role === 'admin' && (
                   <Badge variant="default">
                     <Shield className="w-3 h-3 mr-1" />
                     Admin
                   </Badge>
                 )}
+
               </div>
 
               <h3 className="font-bold text-lg">{c.name}</h3>
+              <p className='bg-purple-100 text-purple-950 w-1/2 pl-4 rounded-full font-semibold'>{c.isMember ? 'SASCU Member' : 'Non-member'}</p>
               <p className="text-gray-600 flex items-center gap-2 mt-2">
                 <Mail className="w-4 h-4" />
                 {c.email}
@@ -177,7 +196,17 @@ export default function CustomersPage() {
                 </p>
               )}
 
+
+
               <div className="flex gap-2 mt-6">
+                {/* Membership Toggle */}
+                <Button
+                  size="sm"
+                  variant={c.isMember ? 'outline' : 'default'}
+                  onClick={() => handleToggleMembership(c._id, !c.isMember)}
+                >
+                  {c.isMember ? 'Remove Membership' : 'Make Member'}
+                </Button>
                 <Button size="sm" onClick={() => openEditModal(c)} className="flex">
                   <Edit className="w-4 h-4 mr-1" />
                   Edit
@@ -204,13 +233,16 @@ export default function CustomersPage() {
                   <th className="text-left p-4 font-medium">Email</th>
                   <th className="text-left p-4 font-medium">Phone</th>
                   <th className="text-left p-4 font-medium">Role</th>
+                  <th className="text-left p-4 font-medium">Membership</th>
                   <th className="text-right p-4 font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.map((c: any) => (
                   <tr key={c._id} className="border-b hover:bg-gray-50">
-                    <td className="p-4">{c.name}</td>
+                    <td className="p-4">
+                      {c.name}
+                    </td>
                     <td className="p-4">{c.email}</td>
                     <td className="p-4">{c.phone || '-'}</td>
                     <td className="p-4">
@@ -219,6 +251,14 @@ export default function CustomersPage() {
                       ) : (
                         <Badge variant="secondary">Customer</Badge>
                       )}
+                    </td>
+                    <td className="p-4">
+                      {c.isMember ? (
+                        <Badge variant="default" className="bg-green-600">Member</Badge>
+                      ) : (
+                        <Badge variant="secondary">Non-member</Badge>
+                      )}
+
                     </td>
                     <td className="p-4 text-right">
                       <Button size="sm" onClick={() => openEditModal(c)} className="mr-2">
@@ -287,10 +327,56 @@ export default function CustomersPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Confirmation Modal for Membership Toggle */}
+      <ConfirmationModal
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title={actionType === 'makeMember' ? 'Make Customer a Member?' : 'Remove Membership?'}
+        description={
+          actionType === 'makeMember'
+            ? 'This customer will get access to member pricing and benefits.'
+            : 'This customer will lose member pricing and benefits.'
+        }
+        confirmText={actionType === 'makeMember' ? 'Make Member' : 'Remove Membership'}
+        variant={actionType === 'removeMember' ? 'destructive' : 'default'}
+        onConfirm={async () => {
+          if (!selectedCustomerId) return;
+
+          try {
+
+            toast.promise(fetch(
+              `${process.env.NEXT_PUBLIC_API_URL}/users/${selectedCustomerId}/toggle-membership`,
+              {
+                method: 'PATCH',
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem('token')}`,
+                },
+              }
+            ), {
+              loading: 'Updating membership...',
+              success: () => {
+                mutate('/users/all');
+                return 'Membership updated';
+              },
+              error: 'Failed to update membership',
+            });
+
+            
+
+
+          } catch {
+            toast.error('Failed to update membership');
+          }
+          
+        }}
+      />
+
     </div>
+
   );
 }
 
 function then(arg0: () => void) {
-    throw new Error('Function not implemented.');
+  throw new Error('Function not implemented.');
 }

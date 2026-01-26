@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DollarSign, Mail, Printer, CreditCard, Banknote, Loader2 } from 'lucide-react';
+import { DollarSign, Mail, Printer, CreditCard, Banknote, Loader2, Receipt } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useSWRConfig } from 'swr';
 
@@ -21,6 +21,8 @@ export default function BookingActions({ booking, onPaymentRecorded }: BookingAc
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [invoiceOpen, setInvoiceOpen] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
+  const [sendingReceipt, setSendingReceipt] = useState(false);
+  const [receiptOpen, setReceiptOpen] = useState(false);
   const [amount, setAmount] = useState('');
   const [method, setMethod] = useState('card');
 
@@ -78,13 +80,34 @@ export default function BookingActions({ booking, onPaymentRecorded }: BookingAc
         );
 
         if (!res.ok) throw new Error();
-        console.log(`Invoice sent to ${booking.user.email}!`);
+        toast.success('Invoice sent');
         setInvoiceOpen(false);
     } catch (err) {
-        console.error('Failed to send invoice');
+        toast.error('Failed to send invoice');
     }
     finally{
         setSendingEmail(false);
+    }
+  };
+
+  const handleSendReceipt = async () => {
+    setSendingReceipt(true);
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/bookings/admin/${booking._id}/send-receipt`,
+        {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        }
+      );
+
+      if (!res.ok) throw new Error();
+      toast.success('Receipt sent');
+      setReceiptOpen(false);
+    } catch (err) {
+      toast.error('Failed to send receipt');
+    } finally {
+      setSendingReceipt(false);
     }
   };
 
@@ -104,10 +127,14 @@ export default function BookingActions({ booking, onPaymentRecorded }: BookingAc
           <Mail className="w-5 h-5 mr-2" />
           Send Invoice
         </Button>
+        <Button variant="outline" onClick={() => setReceiptOpen(true)} className="flex">
+          <Receipt className="w-5 h-5 mr-2" />
+          Send Receipt
+        </Button>
         <Button className="flex" variant="outline" onClick={() => window.print()}>
-                <Printer className="w-5 h-5 mr-2" />
-                Print Invoice
-              </Button>
+          <Printer className="w-5 h-5 mr-2" />
+          Print Invoice
+        </Button>
         
       </div>
 
@@ -204,6 +231,43 @@ export default function BookingActions({ booking, onPaymentRecorded }: BookingAc
               ) : (
                 <>
                   <Mail className="w-5 h-5 mr-2 " />
+                  Send Email
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Send Receipt Modal */}
+      <Dialog open={receiptOpen} onOpenChange={setReceiptOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Send Receipt</DialogTitle>
+          </DialogHeader>
+          <div className="py-8 text-center">
+            <Receipt className="w-16 h-16 text-green-600 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold mb-2">Send payment receipt to customer?</h3>
+            <p className="text-gray-600">
+              Receipt will be emailed to:
+              <br />
+              <strong>{booking.user?.email}</strong>
+            </p>
+            <p  className="text-sm text-gray-500 mt-4">
+              Amount Paid: SBD{booking.deposit || 0}
+            </p>
+          </div>
+          <DialogFooter>
+            <Button className="flex" variant="outline" onClick={() => setReceiptOpen(false)}>Cancel</Button>
+            <Button  className="ml-2 flex" onClick={handleSendReceipt} disabled={sendingReceipt}>
+              {sendingReceipt ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin flex" />
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <Receipt className="w-5 h-5 mr-2 " />
                   Send Email
                 </>
               )}
