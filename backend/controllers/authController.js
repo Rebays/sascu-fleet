@@ -46,7 +46,7 @@ const login = catchAsync(async (req, res) => {
 
   const token = jwt.sign({ id: user._id, role: user.role, email:user.email }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
-  res.json({
+  res.status(200).json({
     token,
     user: { id: user._id, name: user.name, email: user.email, role: user.role }
   });
