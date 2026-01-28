@@ -1,7 +1,5 @@
-"use client";
-
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import Breadcrumb from "@/components/Breadcrumb";
 import {
   CheckCircle,
@@ -16,11 +14,9 @@ import {
   Home,
   Car,
 } from "lucide-react";
+import { BookingConfirmationContent } from "./BookingConfirmationContent";
 
 export default function BookingConfirmationPage() {
-  const searchParams = useSearchParams();
-  const trackingNumber = searchParams.get("trackingNumber");
-
   return (
     <div>
       {/* Hero Section - Success Style */}
@@ -55,24 +51,10 @@ export default function BookingConfirmationPage() {
             />
           </div>
 
-          {/* Tracking Number - Prominent Display */}
-          {trackingNumber && (
-            <div className="bg-gradient-to-br from-primary/10 to-primary/5 border-2 border-primary/20 rounded-lg p-8 mb-8 text-center">
-              <div className="flex items-center justify-center gap-2 mb-3">
-                <FileText className="h-6 w-6 text-primary" />
-                <h3 className="text-xl font-bold">Your Booking Reference</h3>
-              </div>
-              <div className="bg-background border border-primary/30 rounded-lg p-4 mb-4 inline-block">
-                <p className="text-3xl md:text-4xl font-mono font-bold text-primary tracking-wider">
-                  {trackingNumber}
-                </p>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Save this reference number to track your booking and manage your
-                reservation
-              </p>
-            </div>
-          )}
+          {/* Tracking Number - Wrapped in Suspense */}
+          <Suspense fallback={<div className="h-32 animate-pulse bg-muted/20 rounded-lg mb-8" />}>
+            <BookingConfirmationContent />
+          </Suspense>
 
           {/* What Happens Next - Timeline Style */}
           <div className="bg-card border rounded-lg p-8 mb-8">
