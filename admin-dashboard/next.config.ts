@@ -1,7 +1,15 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  async redirects() {
+    return [
+      {
+        source: '/',
+        destination: 'https://sascu-book.vercel.app/',
+        permanent: false,
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {
